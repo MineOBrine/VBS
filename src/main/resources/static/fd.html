@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Deposits — VBS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --primary:#486f5d;--primary2:#2d4a3e;
+            --ink:#0f0e17;--paper:#fafaf8;--surface:#fff;
+            --border:#e2e1f0;--muted:#6b7280;
+            --green:#16a34a;--green-bg:#dcfce7;
+            --red:#dc2626;--red-bg:#fef2f2;
+            --amber:#d97706;--amber-bg:#fef3c7;
+            --purple:#2d4a3e;--purple-bg:#dceee7;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Quicksand',sans-serif;background:var(--paper);min-height:100vh;padding:24px 16px;position:relative;overflow-x:hidden}
+        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.1;pointer-events:none;z-index:0}
+        body::before{width:600px;height:600px;background:radial-gradient(circle,#486f5d,#2d4a3e);top:-150px;right:-150px}
+        body::after{width:500px;height:500px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-120px;left:-100px}
+
+        .page{position:relative;z-index:1;max-width:860px;margin:0 auto}
+        .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .brand{display:flex;align-items:center;gap:10px}
+        .brand-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700}
+        .brand-name{font-size:19px;font-weight:700;color:var(--ink)}
+        .top-btns{display:flex;gap:8px}
+        .btn-nav{padding:9px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s}
+        .btn-nav:hover{border-color:#8ab5a3;color:var(--primary)}
+        .btn-nav.danger:hover{border-color:#f5576c;color:#f5576c}
+
+        .message{padding:11px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:16px;display:none}
+        .message.show{display:block}
+        .message.success{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
+        .message.error  {background:var(--red-bg);color:var(--red);border:1px solid #fecaca}
+
+        /* Rate grid */
+        .rate-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+        .rate-card{
+            background:var(--surface);border:1.5px solid var(--border);
+            border-radius:14px;padding:16px;text-align:center;transition:all .2s;
+        }
+        .rate-card:hover{border-color:#8ab5a3;box-shadow:0 4px 16px rgba(72,111,93,.08)}
+        .rate-tenure{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+        .rate-val{font-size:24px;font-weight:700;color:var(--primary)}
+        .rate-pa{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+
+        /* Create card */
+        .section-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+        .section-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:18px}
+        .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+        .field{display:flex;flex-direction:column}
+        .field.full{grid-column:1/-1}
+        .field label{font-size:12px;font-weight:700;color:#374151;margin-bottom:6px}
+        .field input{
+            padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;
+            font-size:14px;font-family:'Quicksand',sans-serif;font-weight:500;
+            color:var(--ink);transition:all .2s;
+        }
+        .field input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(72,111,93,.1)}
+
+        .renew-toggle{display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer;user-select:none;font-size:13px;font-weight:600;color:var(--muted)}
+        .renew-toggle input{width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+        .renew-toggle:hover{color:var(--ink)}
+
+        .fd-preview{
+            background:var(--paper);border:1.5px dashed #8ab5a3;
+            border-radius:10px;padding:13px 16px;margin-bottom:16px;
+            display:none;flex-wrap:wrap;gap:16px;
+        }
+        .fd-preview.show{display:flex}
+        .prev-item{font-size:13px;color:var(--muted);font-weight:600}
+        .prev-item strong{color:var(--primary);font-size:16px;font-weight:700;margin-left:4px}
+
+        .btn-create{
+            padding:13px 28px;
+            background:linear-gradient(135deg,var(--primary),#5e9480);
+            color:#fff;border:none;border-radius:11px;
+            font-family:'Quicksand',sans-serif;font-size:15px;font-weight:700;
+            cursor:pointer;transition:all .25s;
+        }
+        .btn-create:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(72,111,93,.35)}
+
+        /* FD cards */
+        .fd-card{
+            background:var(--surface);border:1.5px solid var(--border);
+            border-radius:16px;padding:22px;margin-bottom:14px;
+            border-left:4px solid var(--border);transition:all .2s;
+        }
+        .fd-card:hover{box-shadow:0 4px 20px rgba(72,111,93,.08)}
+        .fd-card.ACTIVE  {border-left-color:var(--primary)}
+        .fd-card.MATURED {border-left-color:var(--green)}
+        .fd-card.BROKEN  {border-left-color:var(--red)}
+
+        .fd-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+        .fd-meta{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:4px}
+        .fd-principal{font-size:22px;font-weight:700;color:var(--ink)}
+        .fd-notes{font-size:12px;color:var(--muted);font-weight:500;margin-top:3px}
+
+        .status-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+        .badge-ACTIVE  {background:var(--purple-bg);color:var(--primary)}
+        .badge-MATURED {background:var(--green-bg);color:var(--green)}
+        .badge-BROKEN  {background:var(--red-bg);color:var(--red)}
+
+        .fd-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}
+        .fd-stat{background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:9px 12px}
+        .fs-label{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+        .fs-value{font-size:14px;font-weight:700;color:var(--ink)}
+
+        .countdown{
+            background:var(--purple-bg);border-radius:9px;padding:10px 14px;
+            font-size:13px;font-weight:700;color:var(--primary);margin-bottom:12px;
+        }
+        .progress-wrap{margin-bottom:12px}
+        .progress-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px}
+        .progress-track{height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),#a78bfa);border-radius:4px}
+
+        .fd-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .btn-break{padding:9px 18px;background:var(--red-bg);color:var(--red);border:1.5px solid #fecaca;border-radius:9px;font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+        .btn-break:hover{background:var(--red);color:#fff;border-color:var(--red)}
+        .renew-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--green-bg);color:var(--green);border-radius:20px;font-size:11px;font-weight:700}
+
+        .empty{text-align:center;padding:44px 20px;color:var(--muted)}
+        .empty .eicon{font-size:44px;margin-bottom:12px}
+        .empty p{font-size:14px;font-weight:600}
+
+        /* Modal */
+        .modal{display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+        .modal.show{display:flex}
+        .modal-card{background:var(--surface);border-radius:20px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);border:1px solid var(--border);animation:up .3s ease both}
+        @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .modal-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:5px}
+        .modal-sub{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:14px}
+        .modal-warn{background:var(--amber-bg);border:1px solid #fde68a;border-radius:9px;padding:11px 13px;font-size:12px;color:var(--amber);font-weight:600;margin-bottom:14px;line-height:1.6}
+        .break-info{background:var(--paper);border-radius:9px;padding:11px 13px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--muted)}
+        .modal-btns{display:flex;gap:10px;justify-content:flex-end}
+        .btn-danger{padding:11px 22px;background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+        .btn-danger:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(245,87,108,.35)}
+        .btn-ghost{padding:11px 18px;background:var(--paper);color:var(--muted);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+        .btn-ghost:hover{border-color:#8ab5a3;color:var(--primary)}
+
+        @media(max-width:580px){.form-grid{grid-template-columns:1fr}.rate-grid{grid-template-columns:1fr 1fr}}
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="top-bar">
+        <div class="brand">
+            <div class="brand-logo">VB</div>
+            <span class="brand-name">Fixed Deposits</span>
+        </div>
+        <div class="top-btns">
+            <button class="btn-nav" onclick="goBack()">← Dashboard</button>
+            <button class="btn-nav danger" onclick="logout()">Sign out</button>
+        </div>
+    </div>
+
+    <div id="fdMsg" class="message"></div>
+
+    <!-- Rate cards -->
+    <div class="rate-grid">
+        <div class="rate-card"><div class="rate-tenure">3–6 months</div><div class="rate-val">5.5%</div><div class="rate-pa">per annum</div></div>
+        <div class="rate-card"><div class="rate-tenure">7–12 months</div><div class="rate-val">6.5%</div><div class="rate-pa">per annum</div></div>
+        <div class="rate-card"><div class="rate-tenure">13–24 months</div><div class="rate-val">7.0%</div><div class="rate-pa">per annum</div></div>
+        <div class="rate-card"><div class="rate-tenure">25–60 months</div><div class="rate-val">7.5%</div><div class="rate-pa">per annum</div></div>
+    </div>
+
+    <!-- Create FD -->
+    <div class="section-card">
+        <div class="section-title">🔒 Open a New Fixed Deposit</div>
+        <form id="fdForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Principal Amount (₹) *</label>
+                    <input type="number" id="fdAmount" min="500" step="100" placeholder="Min. ₹500" required>
+                </div>
+                <div class="field">
+                    <label>Tenure (months) *</label>
+                    <input type="number" id="fdTenure" min="3" max="60" placeholder="3 – 60" required>
+                </div>
+                <div class="field">
+                    <label>Notes (optional)</label>
+                    <input type="text" id="fdNotes" placeholder="e.g. Emergency fund">
+                </div>
+            </div>
+            <label class="renew-toggle">
+                <input type="checkbox" id="fdAutoRenew">
+                🔄 Auto-renew on maturity
+            </label>
+            <div id="fdPreview" class="fd-preview">
+                <div class="prev-item">Rate<strong id="pRate">—</strong></div>
+                <div class="prev-item">Interest Earned<strong id="pInterest">—</strong></div>
+                <div class="prev-item">Maturity Amount<strong id="pMaturity">—</strong></div>
+                <div class="prev-item">Matures on<strong id="pDate">—</strong></div>
+            </div>
+            <div id="fdCreateError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:14px"></div>
+            <button type="submit" class="btn-create">Open Fixed Deposit →</button>
+        </form>
+    </div>
+
+    <!-- FD List -->
+    <div class="section-title" style="margin-bottom:14px">My Fixed Deposits</div>
+    <div id="fdList"></div>
+</div>
+
+<!-- Break Modal -->
+<div id="breakModal" class="modal">
+    <div class="modal-card">
+        <div class="modal-title">Break FD Early?</div>
+        <div class="modal-sub">FD #<span id="breakId"></span></div>
+        <div class="modal-warn">⚠️ Early withdrawal applies a <strong>1% p.a. penalty</strong> on the interest rate. You receive principal + reduced interest for days elapsed.</div>
+        <div class="break-info" id="breakInfo"></div>
+        <div id="breakError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:4px"></div>
+        <div class="modal-btns">
+            <button class="btn-ghost" onclick="closeBreak()">Cancel</button>
+            <button class="btn-danger" onclick="confirmBreak()">Break FD</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = 'http://localhost:8081';
+    let userId, breakFdId;
+
+    function init() {
+        const p = new URLSearchParams(window.location.search);
+        userId = localStorage.getItem('userId') || p.get('id');
+        if (!userId) { location.href='login.html'; return; }
+        loadFDs();
+    }
+
+    async function loadFDs() {
+        try {
+            const fds = await (await fetch(`${API}/fd/user/${userId}`)).json();
+            renderFDs(fds);
+        } catch { showMsg('Failed to load FDs.','error'); document.getElementById('fdList').innerHTML='<div class="empty"><div class="eicon">❌</div><p>Could not load FDs.</p></div>'; }
+    }
+
+    function renderFDs(fds) {
+        const c = document.getElementById('fdList');
+        if (!fds.length) { c.innerHTML='<div class="empty"><div class="eicon">🏛️</div><p>No Fixed Deposits yet. Open your first one above!</p></div>'; return; }
+        fds.sort((a,b)=>new Date(b.startDate)-new Date(a.startDate));
+        c.innerHTML = fds.map(fd => {
+            const start=new Date(fd.startDate), mat=new Date(fd.maturityDate), now=new Date();
+            const totalMs=mat-start, elapsedMs=Math.min(now-start,totalMs);
+            const pct=fd.status==='ACTIVE'?Math.min((elapsedMs/totalMs)*100,100).toFixed(1):100;
+            const daysLeft=fd.status==='ACTIVE'?Math.max(0,Math.ceil((mat-now)/86400000)):0;
+            const sFmt=d=>d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+            const countdown=fd.status==='ACTIVE'?`<div class="countdown">⏳ ${daysLeft===0?'Matures today!':daysLeft+' day'+(daysLeft===1?'':'s')+' remaining'} · Matures ${sFmt(mat)}</div>`:'';
+            const breakBtn=fd.status==='ACTIVE'?`<button class="btn-break" onclick="openBreak(${fd.id},${fd.interestRate},${fd.principal})">🔓 Break Early</button>`:'';
+            const renewChip=fd.autoRenew?'<span class="renew-chip">🔄 Auto-renew ON</span>':'';
+            return `
+            <div class="fd-card ${fd.status}">
+                <div class="fd-header">
+                    <div>
+                        <div class="fd-meta">FD #${fd.id} · Opened ${sFmt(start)}</div>
+                        <div class="fd-principal">₹${fd.principal.toFixed(2)}</div>
+                        ${fd.notes?`<div class="fd-notes">${fd.notes}</div>`:''}
+                    </div>
+                    <span class="status-badge badge-${fd.status}">${fd.status}</span>
+                </div>
+                <div class="fd-stats">
+                    <div class="fd-stat"><div class="fs-label">Rate</div><div class="fs-value">${fd.interestRate}% p.a.</div></div>
+                    <div class="fd-stat"><div class="fs-label">Tenure</div><div class="fs-value">${fd.tenure} months</div></div>
+                    <div class="fd-stat"><div class="fs-label">Interest</div><div class="fs-value" style="color:var(--primary)">₹${fd.interestEarned.toFixed(2)}</div></div>
+                    <div class="fd-stat"><div class="fs-label">Maturity Amount</div><div class="fs-value" style="color:var(--green)">₹${fd.maturityAmount.toFixed(2)}</div></div>
+                </div>
+                ${countdown}
+                ${fd.status==='ACTIVE'?`<div class="progress-wrap"><div class="progress-labels"><span>Progress</span><span>${pct}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div></div>`:''}
+                <div class="fd-footer">${breakBtn}${renewChip}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function rateFor(t){ return t<=6?5.5:t<=12?6.5:t<=24?7.0:7.5; }
+
+    function updatePreview() {
+        const a=+document.getElementById('fdAmount').value, t=+document.getElementById('fdTenure').value;
+        const prev=document.getElementById('fdPreview');
+        if (a>=500&&t>=3&&t<=60) {
+            const rate=rateFor(t), interest=Math.round(a*rate*t/(12*100)*100)/100, maturity=Math.round((a+interest)*100)/100;
+            const d=new Date(); d.setMonth(d.getMonth()+t);
+            document.getElementById('pRate').textContent    = rate+'% p.a.';
+            document.getElementById('pInterest').textContent = '₹'+interest.toFixed(2);
+            document.getElementById('pMaturity').textContent = '₹'+maturity.toFixed(2);
+            document.getElementById('pDate').textContent    = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+            prev.classList.add('show');
+        } else { prev.classList.remove('show'); }
+    }
+    document.getElementById('fdAmount').addEventListener('input', updatePreview);
+    document.getElementById('fdTenure').addEventListener('input', updatePreview);
+
+    document.getElementById('fdForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const errEl = document.getElementById('fdCreateError');
+        errEl.style.display = 'none';
+        const body={userId:+userId,principal:+document.getElementById('fdAmount').value,tenure:+document.getElementById('fdTenure').value,autoRenew:document.getElementById('fdAutoRenew').checked,notes:document.getElementById('fdNotes').value.trim()};
+        try {
+            const r=await fetch(`${API}/fd/create`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+            const t=await r.text();
+            if (t.includes('successfully')) {
+                showMsg('✅ '+t,'success');
+                document.getElementById('fdForm').reset();
+                document.getElementById('fdPreview').classList.remove('show');
+                loadFDs();
+            } else {
+                errEl.textContent = '⚠️ ' + t;
+                errEl.style.display = 'block';
+            }
+        } catch {
+            errEl.textContent = '⚠️ Error creating Fixed Deposit.';
+            errEl.style.display = 'block';
+        }
+    });
+
+    function openBreak(id, rate, principal) {
+        breakFdId=id;
+        document.getElementById('breakId').textContent=id;
+        const pen=Math.max(0,rate-1);
+        document.getElementById('breakInfo').innerHTML=`Original rate: <b>${rate}% p.a.</b> → Penalized: <b>${pen}% p.a.</b><br>You receive principal + interest at ${pen}% p.a. for days elapsed.`;
+        document.getElementById('breakError').style.display = 'none';
+        document.getElementById('breakModal').classList.add('show');
+    }
+    function closeBreak() {
+        document.getElementById('breakModal').classList.remove('show');
+        document.getElementById('breakError').style.display = 'none';
+        breakFdId=null;
+    }
+    async function confirmBreak() {
+        const errEl = document.getElementById('breakError');
+        errEl.style.display = 'none';
+        try {
+            const r=await fetch(`${API}/fd/break/${breakFdId}?userId=${userId}`,{method:'POST'});
+            const t=await r.text();
+            if (r.ok) {
+                showMsg('✅ '+t,'success');
+                closeBreak();
+                loadFDs();
+            } else {
+                errEl.textContent = '⚠️ ' + t;
+                errEl.style.display = 'block';
+            }
+        } catch {
+            errEl.textContent = '⚠️ Error breaking FD.';
+            errEl.style.display = 'block';
+        }
+    }
+
+    function showMsg(msg,type){const el=document.getElementById('fdMsg');el.textContent=msg;el.className='message '+type+' show';setTimeout(()=>el.classList.remove('show'),5000)}
+    function goBack(){location.href='dashboard.html'}
+    function logout(){localStorage.clear();location.href='home.html'}
+    window.addEventListener('click',e=>{if(e.target===document.getElementById('breakModal'))closeBreak()});
+    window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

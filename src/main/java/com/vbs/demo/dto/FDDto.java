@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DisplayDto {
-    String username;
-    double balance;
-    String accountType; // SAVINGS | CURRENT
+public class FDDto {
+    int userId;
+    double principal;
+    int tenure;        // months
+    boolean autoRenew;
+    String notes;
 }

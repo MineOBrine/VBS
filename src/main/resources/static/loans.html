@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Loans — VBS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --primary:#486f5d;--primary2:#2d4a3e;
+            --ink:#0f0e17;--paper:#fafaf8;--surface:#fff;
+            --border:#e2e1f0;--muted:#6b7280;
+            --green:#16a34a;--green-bg:#dcfce7;
+            --blue:#b45309;--blue-bg:#fef3e2;
+            --red:#dc2626;--red-bg:#fef2f2;
+            --amber:#d97706;--amber-bg:#fef3c7;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Quicksand',sans-serif;background:var(--paper);min-height:100vh;padding:24px 16px;position:relative;overflow-x:hidden}
+        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.1;pointer-events:none;z-index:0}
+        body::before{width:600px;height:600px;background:radial-gradient(circle,#486f5d,#2d4a3e);top:-150px;right:-150px}
+        body::after{width:500px;height:500px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-120px;left:-100px}
+
+        .page{position:relative;z-index:1;max-width:860px;margin:0 auto}
+        .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .brand{display:flex;align-items:center;gap:10px}
+        .brand-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700}
+        .brand-name{font-size:19px;font-weight:700;color:var(--ink)}
+        .top-btns{display:flex;gap:8px}
+        .btn-nav{padding:9px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+        .btn-nav:hover{border-color:#8ab5a3;color:var(--primary)}
+        .btn-nav.danger:hover{border-color:#f5576c;color:#f5576c}
+
+        .message{padding:11px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:16px;display:none}
+        .message.show{display:block}
+        .message.success{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
+        .message.error  {background:var(--red-bg);color:var(--red);border:1px solid #fecaca}
+
+        /* Rate info card */
+        .info-card{
+            background:var(--surface);border:1.5px solid var(--border);
+            border-radius:16px;padding:20px 22px;margin-bottom:20px;
+            display:flex;align-items:flex-start;gap:14px;
+        }
+        .info-icon{font-size:30px;flex-shrink:0}
+        .info-text h3{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px}
+        .info-text p{font-size:13px;color:var(--muted);font-weight:500;line-height:1.5}
+
+        /* Apply card */
+        .section-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+        .section-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:18px}
+
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+        .field{display:flex;flex-direction:column}
+        .field.full{grid-column:1/-1}
+        .field label{font-size:12px;font-weight:700;color:#374151;margin-bottom:6px}
+        .field input,.field textarea{
+            padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;
+            font-size:14px;font-family:'Quicksand',sans-serif;font-weight:500;
+            color:var(--ink);transition:all .2s;
+        }
+        .field input:focus,.field textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(72,111,93,.1)}
+        .field textarea{resize:vertical;min-height:64px}
+
+        .emi-preview{
+            background:var(--paper);border:1.5px dashed #8ab5a3;
+            border-radius:10px;padding:13px 16px;margin-bottom:16px;
+            display:none;flex-wrap:wrap;gap:16px;align-items:center;
+        }
+        .emi-preview.show{display:flex}
+        .emi-item{font-size:13px;color:var(--muted);font-weight:600}
+        .emi-item strong{color:var(--primary);font-size:16px;font-weight:700;margin-left:4px}
+
+        .btn-apply{
+            padding:13px 28px;
+            background:linear-gradient(135deg,var(--primary),var(--primary2));
+            color:#fff;border:none;border-radius:11px;
+            font-family:'Quicksand',sans-serif;font-size:15px;font-weight:700;
+            cursor:pointer;transition:all .25s;
+        }
+        .btn-apply:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(72,111,93,.35)}
+
+        /* Blocked notice */
+        .blocked-notice{
+            background:var(--amber-bg);border:1.5px solid #fde68a;
+            border-radius:12px;padding:16px;font-size:13px;font-weight:600;
+            color:var(--amber);text-align:center;
+        }
+
+        /* Loan cards */
+        .loan-card{
+            background:var(--surface);border:1.5px solid var(--border);
+            border-radius:16px;padding:22px;margin-bottom:14px;
+            border-left:4px solid var(--border);transition:all .2s;
+        }
+        .loan-card:hover{box-shadow:0 4px 20px rgba(72,111,93,.08)}
+        .loan-card.PENDING  {border-left-color:#f59e0b}
+        .loan-card.APPROVED {border-left-color:#22c55e}
+        .loan-card.REJECTED {border-left-color:#ef4444}
+        .loan-card.CLOSED   {border-left-color:#94a3b8}
+
+        .loan-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+        .loan-meta{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:4px}
+        .loan-amount{font-size:22px;font-weight:700;color:var(--ink)}
+        .loan-purpose{font-size:12px;color:var(--muted);font-weight:500;margin-top:3px}
+
+        .status-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+        .badge-PENDING  {background:var(--amber-bg);color:var(--amber)}
+        .badge-APPROVED {background:var(--green-bg);color:var(--green)}
+        .badge-REJECTED {background:var(--red-bg);color:var(--red)}
+        .badge-CLOSED   {background:#f1f5f9;color:#64748b}
+
+        .loan-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}
+        .loan-stat{background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:9px 12px}
+        .ls-label{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+        .ls-value{font-size:14px;font-weight:700;color:var(--ink)}
+
+        .progress-wrap{margin-bottom:14px}
+        .progress-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:5px}
+        .progress-track{height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden}
+        .progress-fill{height:100%;background:linear-gradient(90deg,#486f5d,#5e9480);border-radius:4px;transition:width .5s}
+
+        .btn-repay{
+            padding:9px 20px;
+            background:linear-gradient(135deg,var(--green),#22c55e);
+            color:#fff;border:none;border-radius:9px;
+            font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;
+            cursor:pointer;transition:all .2s;
+        }
+        .btn-repay:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(22,163,74,.35)}
+
+        .empty{text-align:center;padding:44px 20px;color:var(--muted)}
+        .empty .eicon{font-size:44px;margin-bottom:12px}
+        .empty p{font-size:14px;font-weight:600}
+
+        /* Modal */
+        .modal{display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+        .modal.show{display:flex}
+        .modal-card{background:var(--surface);border-radius:20px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);border:1px solid var(--border);animation:up .3s ease both}
+        @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .modal-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:5px}
+        .modal-sub{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:16px}
+        .repay-info{background:var(--paper);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+        .repay-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;font-weight:600}
+        .repay-row span:first-child{color:var(--muted)}
+        .modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
+        .btn-primary{padding:11px 22px;background:linear-gradient(135deg,var(--green),#22c55e);color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(22,163,74,.35)}
+        .btn-ghost{padding:11px 18px;background:var(--paper);color:var(--muted);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+        .btn-ghost:hover{border-color:#8ab5a3;color:var(--primary)}
+
+        @media(max-width:580px){.form-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="top-bar">
+        <div class="brand">
+            <div class="brand-logo">VB</div>
+            <span class="brand-name">My Loans</span>
+        </div>
+        <div class="top-btns">
+            <button class="btn-nav" onclick="goBack()">← Dashboard</button>
+            <button class="btn-nav danger" onclick="logout()">Sign out</button>
+        </div>
+    </div>
+
+    <div id="loanMsg" class="message"></div>
+
+    <div id="infoCard" class="info-card" style="display:none">
+        <div class="info-icon">🏦</div>
+        <div class="info-text">
+            <h3>Loans at 10% p.a.</h3>
+            <p>EMI calculated using reducing balance method. You can repay in full or in partial payments. Only one active or pending loan at a time.</p>
+        </div>
+    </div>
+
+    <!-- Apply form -->
+    <div id="applySection" class="section-card">
+        <div class="section-title">Apply for a Loan</div>
+        <form id="applyForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Loan Amount (₹) *</label>
+                    <input type="number" id="loanAmount" min="1000" step="100" placeholder="Min. ₹1,000" required>
+                </div>
+                <div class="field">
+                    <label>Tenure (months) *</label>
+                    <input type="number" id="loanTenure" min="1" max="60" placeholder="1 – 60 months" required>
+                </div>
+                <div class="field full">
+                    <label>Purpose (optional)</label>
+                    <textarea id="loanPurpose" placeholder="e.g. Home renovation, Education…"></textarea>
+                </div>
+            </div>
+            <div id="emiPreview" class="emi-preview">
+                <div class="emi-item">Monthly EMI<strong id="emiVal">₹0</strong></div>
+                <div class="emi-item">Total Repayable<strong id="totalVal">₹0</strong></div>
+                <div class="emi-item">Rate<strong>10% p.a.</strong></div>
+            </div>
+            <div id="applyError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:14px"></div>
+            <button type="submit" class="btn-apply">Submit Application →</button>
+        </form>
+    </div>
+
+    <!-- Loan history -->
+    <div class="section-title" style="margin-bottom:14px">Loan History</div>
+    <div id="loansList"></div>
+</div>
+
+<!-- Repay Modal -->
+<div id="repayModal" class="modal">
+    <div class="modal-card">
+        <div class="modal-title">Repay Loan</div>
+        <div class="modal-sub">Loan #<span id="repayId"></span></div>
+        <div class="repay-info" id="repayInfo"></div>
+        <div id="repayError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:14px"></div>
+        <div class="field" style="margin-bottom:16px">
+            <label>Repayment Amount (₹)</label>
+            <input type="number" id="repayAmt" step="0.01" min="1" placeholder="Enter amount" style="padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Quicksand',sans-serif;font-weight:500;color:var(--ink);transition:all .2s;width:100%">
+        </div>
+        <div class="modal-btns">
+            <button class="btn-ghost" onclick="closeRepay()">Cancel</button>
+            <button class="btn-primary" onclick="submitRepay()">Pay Now</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = 'http://localhost:8081';
+    let userId, repayLoanId;
+
+    function init() {
+        const p = new URLSearchParams(window.location.search);
+        userId = localStorage.getItem('userId') || p.get('id');
+        if (!userId) { location.href='login.html'; return; }
+        document.getElementById('infoCard').style.display = 'flex';
+        loadLoans();
+    }
+
+    async function loadLoans() {
+        try {
+            const loans = await (await fetch(`${API}/loan/user/${userId}`)).json();
+            renderLoans(loans);
+            const hasActive = loans.some(l => l.status==='APPROVED'||l.status==='PENDING');
+            if (hasActive) {
+                document.getElementById('applySection').innerHTML =
+                    '<div style="background:var(--amber-bg);border:1.5px solid #fde68a;border-radius:12px;padding:16px;font-size:13px;font-weight:700;color:var(--amber);text-align:center">⚠️ You already have an active or pending loan. Close it before applying for a new one.</div>';
+            }
+        } catch { showMsg('Failed to load loans.','error'); }
+    }
+
+    function renderLoans(loans) {
+        const c = document.getElementById('loansList');
+        if (!loans.length) {
+            c.innerHTML='<div class="empty"><div class="eicon">📄</div><p>No loan history yet.</p></div>'; return;
+        }
+        loans.sort((a,b)=>new Date(b.appliedDate)-new Date(a.appliedDate));
+        c.innerHTML = loans.map(l => {
+            const paid  = l.totalAmount - l.remainingAmount;
+            const pct   = l.totalAmount>0 ? Math.min((paid/l.totalAmount)*100,100).toFixed(1) : 0;
+            const aDate = new Date(l.appliedDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+            const prog  = (l.status==='APPROVED'||l.status==='CLOSED') ? `
+                <div class="progress-wrap">
+                    <div class="progress-labels"><span>Repaid: ₹${paid.toFixed(2)}</span><span>Total: ₹${l.totalAmount.toFixed(2)}</span></div>
+                    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+                </div>` : '';
+            const repayBtn = l.status==='APPROVED'
+                ? `<button class="btn-repay" onclick="openRepay(${l.id},${l.remainingAmount},${l.emi})">💳 Repay</button>` : '';
+            return `
+            <div class="loan-card ${l.status}">
+                <div class="loan-header">
+                    <div>
+                        <div class="loan-meta">Loan #${l.id} · Applied ${aDate}</div>
+                        <div class="loan-amount">₹${l.amount.toFixed(2)}</div>
+                        ${l.purpose?`<div class="loan-purpose">Purpose: ${l.purpose}</div>`:''}
+                    </div>
+                    <span class="status-badge badge-${l.status}">${l.status}</span>
+                </div>
+                <div class="loan-stats">
+                    <div class="loan-stat"><div class="ls-label">Rate</div><div class="ls-value">${l.interestRate}% p.a.</div></div>
+                    <div class="loan-stat"><div class="ls-label">Tenure</div><div class="ls-value">${l.tenure} mo.</div></div>
+                    <div class="loan-stat"><div class="ls-label">EMI</div><div class="ls-value">₹${l.emi.toFixed(2)}</div></div>
+                    <div class="loan-stat"><div class="ls-label">Remaining</div><div class="ls-value" style="color:${l.remainingAmount>0?'var(--red)':'var(--green)'}">₹${l.remainingAmount.toFixed(2)}</div></div>
+                </div>
+                ${prog}${repayBtn}
+            </div>`;
+        }).join('');
+    }
+
+    // EMI preview
+    document.getElementById('loanAmount').addEventListener('input', calcEmi);
+    document.getElementById('loanTenure').addEventListener('input', calcEmi);
+    function calcEmi() {
+        const a=+document.getElementById('loanAmount').value, t=+document.getElementById('loanTenure').value;
+        const prev=document.getElementById('emiPreview');
+        if (a>=1000&&t>=1&&t<=60) {
+            const r=10/12/100, emi=(a*r*Math.pow(1+r,t))/(Math.pow(1+r,t)-1);
+            document.getElementById('emiVal').textContent   = '₹'+emi.toFixed(2);
+            document.getElementById('totalVal').textContent = '₹'+(emi*t).toFixed(2);
+            prev.classList.add('show');
+        } else { prev.classList.remove('show'); }
+    }
+
+    document.getElementById('applyForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const errEl = document.getElementById('applyError');
+        errEl.style.display = 'none';
+        const body={userId:+userId,amount:+document.getElementById('loanAmount').value,tenure:+document.getElementById('loanTenure').value,purpose:document.getElementById('loanPurpose').value.trim()};
+        try {
+            const r=await fetch(`${API}/loan/apply`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+            const t=await r.text();
+            if (t.includes('successfully')) {
+                showMsg('✅ '+t,'success');
+                document.getElementById('applyForm').reset();
+                document.getElementById('emiPreview').classList.remove('show');
+                loadLoans();
+            } else {
+                errEl.textContent = '⚠️ ' + t;
+                errEl.style.display = 'block';
+            }
+        } catch {
+            errEl.textContent = '⚠️ Error submitting application.';
+            errEl.style.display = 'block';
+        }
+    });
+
+    function openRepay(id, remaining, emi) {
+        repayLoanId=id;
+        document.getElementById('repayId').textContent=id;
+        document.getElementById('repayInfo').innerHTML=`<div class="repay-row"><span>Outstanding</span><span>₹${remaining.toFixed(2)}</span></div><div class="repay-row"><span>Suggested EMI</span><span>₹${emi.toFixed(2)}</span></div>`;
+        document.getElementById('repayAmt').value=emi.toFixed(2);
+        document.getElementById('repayError').style.display = 'none';
+        document.getElementById('repayModal').classList.add('show');
+    }
+    function closeRepay() {
+        document.getElementById('repayModal').classList.remove('show');
+        document.getElementById('repayError').style.display = 'none';
+    }
+    async function submitRepay() {
+        const errEl = document.getElementById('repayError');
+        errEl.style.display = 'none';
+        const amt=+document.getElementById('repayAmt').value;
+        if (!amt||amt<=0) {
+            errEl.textContent = '⚠️ Enter a valid repayment amount.';
+            errEl.style.display = 'block';
+            return;
+        }
+        try {
+            const r=await fetch(`${API}/loan/repay/${repayLoanId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:+userId,amount:amt})});
+            const t=await r.text();
+            if (r.ok) {
+                showMsg('✅ '+t,'success');
+                closeRepay();
+                loadLoans();
+            } else {
+                errEl.textContent = '⚠️ ' + t;
+                errEl.style.display = 'block';
+            }
+        } catch {
+            errEl.textContent = '⚠️ Error processing repayment.';
+            errEl.style.display = 'block';
+        }
+    }
+
+    function showMsg(msg,type) {
+        const el=document.getElementById('loanMsg');
+        el.textContent=msg; el.className='message '+type+' show';
+        setTimeout(()=>el.classList.remove('show'),4000);
+    }
+    function goBack() { location.href='dashboard.html'; }
+    function logout() { localStorage.clear(); location.href='home.html'; }
+    window.addEventListener('click',e=>{ if(e.target===document.getElementById('repayModal')) closeRepay(); });
+    window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

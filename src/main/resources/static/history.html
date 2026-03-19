@@ -3,263 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>History - Virtual Banking System</title>
+    <title>System History — VBS Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --primary:#486f5d;--primary2:#2d4a3e;
+            --ink:#0f0e17;--paper:#fafaf8;--surface:#fff;
+            --border:#e2e1f0;--muted:#6b7280;
+            --admin1:#1e293b;
         }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Quicksand',sans-serif;background:var(--paper);min-height:100vh;padding:24px 16px;position:relative;overflow-x:hidden}
+        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.1;pointer-events:none;z-index:0}
+        body::before{width:600px;height:600px;background:radial-gradient(circle,#1e293b,#334155);top:-150px;right:-150px}
+        body::after{width:500px;height:500px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-120px;left:-100px}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        .page{position:relative;z-index:1;max-width:860px;margin:0 auto}
+        .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .brand{display:flex;align-items:center;gap:10px}
+        .brand-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--admin1),#334155);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
+        .brand-name{font-size:19px;font-weight:700;color:var(--ink)}
+        .btn-nav{padding:9px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s}
+        .btn-nav:hover{border-color:#8ab5a3;color:var(--primary)}
+
+        /* Hero strip */
+        .hero{
+            background:linear-gradient(135deg,var(--admin1),#334155);
+            border-radius:18px;padding:26px 28px;color:#fff;
+            margin-bottom:20px;
+            box-shadow:0 8px 28px rgba(30,41,59,.25);
         }
+        .hero h2{font-size:20px;font-weight:700;margin-bottom:4px}
+        .hero p{font-size:13px;opacity:.75;font-weight:500}
+        .hero-count{font-size:32px;font-weight:700;margin-top:12px}
+        .hero-count span{font-size:14px;opacity:.7;font-weight:500}
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        /* Search */
+        .search-bar{display:flex;gap:10px;margin-bottom:18px}
+        .search-input{
+            flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;
+            font-family:'Quicksand',sans-serif;font-size:14px;font-weight:500;
+            color:var(--ink);transition:all .2s;background:var(--surface);
         }
+        .search-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(72,111,93,.1)}
+        .search-input::placeholder{color:#c4c4ce}
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
+        /* History list */
+        .history-list{display:flex;flex-direction:column;gap:8px}
+        .history-item{
+            background:var(--surface);border:1.5px solid var(--border);
+            border-radius:13px;padding:15px 18px;
+            display:flex;align-items:flex-start;gap:14px;
+            transition:all .2s;
         }
+        .history-item:hover{border-color:#8ab5a3;box-shadow:0 4px 14px rgba(72,111,93,.08)}
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
+        .h-num{
+            width:34px;height:34px;flex-shrink:0;
+            background:var(--paper);border:1.5px solid var(--border);
+            border-radius:9px;display:flex;align-items:center;justify-content:center;
+            font-size:11px;font-weight:700;color:var(--muted);
         }
+        .h-body{flex:1;min-width:0}
+        .h-desc{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;line-height:1.4}
+        .h-date{font-size:11px;color:var(--muted);font-weight:500}
 
-        .btn-header {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
+        /* Icon based on action */
+        .h-icon{width:34px;height:34px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+        .icon-user   {background:#dbeafe}
+        .icon-loan   {background:#dcfce7}
+        .icon-delete {background:#fee2e2}
+        .icon-interest{background:#d1fae5}
+        .icon-default{background:var(--paper)}
 
-        .btn-header:hover {
-            background: white;
-            color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+        .empty{text-align:center;padding:50px 20px;color:var(--muted)}
+        .empty .eicon{font-size:44px;margin-bottom:12px}
+        .empty p{font-size:14px;font-weight:600}
 
-        .content {
-            padding: 40px 30px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 12px;
-            background: #f8f9fa;
-            padding: 20px;
-        }
-
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        .history-table thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .history-table th {
-            padding: 16px 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-        }
-
-        .history-table tbody tr {
-            border-bottom: 1px solid #e0e0e0;
-            transition: all 0.2s ease;
-        }
-
-        .history-table tbody tr:hover {
-            background-color: #f5f7ff;
-            box-shadow: inset 0 0 10px rgba(102, 126, 234, 0.05);
-        }
-
-        .history-table td {
-            padding: 14px 15px;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .history-table td:first-child {
-            font-weight: 600;
-            color: #667eea;
-            width: 60px;
-        }
-
-        .history-table td:nth-child(2) {
-            color: #555;
-            word-break: break-word;
-        }
-
-        .date {
-            color: #999;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-
-        .history-empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-            font-size: 16px;
-        }
-
-        .history-empty::before {
-            content: '📋';
-            display: block;
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-
-            .header h1 {
-                font-size: 22px;
-            }
-
-            .history-table th,
-            .history-table td {
-                padding: 10px;
-                font-size: 12px;
-            }
-
-            .content {
-                padding: 20px 15px;
-            }
-
-            .table-wrapper {
-                padding: 10px;
-            }
-        }
+        @media(max-width:500px){.h-num{display:none}}
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>History</h1>
-        <div>
-            <button class="btn-header" onclick="goBackToAdmin()">← Back</button>
+<div class="page">
+    <div class="top-bar">
+        <div class="brand">
+            <div class="brand-logo">ADM</div>
+            <span class="brand-name">System History</span>
         </div>
+        <button class="btn-nav" onclick="goBack()">← Admin Panel</button>
     </div>
-    <div class="content">
-        <div id="historyMessage" class="history-empty" style="display:none"></div>
-        <div class="table-wrapper">
-            <table class="history-table" id="historyTable">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Description</th>
-                    <th>Date</th>
-                </tr>
-                </thead>
-                <tbody id="historyBody">
-                <tr>
-                    <td colspan="3" class="history-empty">Loading history...</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+
+    <div class="hero">
+        <h2>Admin Activity Log</h2>
+        <p>All administrative actions recorded here</p>
+        <div class="hero-count" id="heroCount">0 <span>records</span></div>
+    </div>
+
+    <div class="search-bar">
+        <input class="search-input" id="searchInput" placeholder="Search history…" oninput="filterHistory(this.value)">
+    </div>
+
+    <div id="historyList" class="history-list">
+        <div class="empty"><div class="eicon">⏳</div><p>Loading history…</p></div>
     </div>
 </div>
 
 <script>
-    const API_URL = 'http://localhost:8081';
-    let userId = null;
+    const API = 'http://localhost:8081';
+    let userId, allHistory = [];
 
-    function getUserIdFromURL() {
-        const params = new URLSearchParams(window.location.search);
-        const urlUserId = params.get('id');
-        const storedUserId = localStorage.getItem('userId');
-        userId = storedUserId || urlUserId;
+    function init() {
+        const p = new URLSearchParams(window.location.search);
+        userId = localStorage.getItem('userId') || p.get('id');
+        load();
     }
 
-    function goBackToAdmin() {
-        const params = new URLSearchParams();
-        if (userId) params.set('id', userId);
-        params.set('role', 'admin');
-        window.location.href = `admin.html?${params.toString()}`;
-    }
-
-    async function loadHistories() {
+    async function load() {
         try {
-            const res = await fetch(`${API_URL}/histories`);
-            if (!res.ok) throw new Error('Failed to load histories');
-            const histories = await res.json();
-            renderHistories(histories);
-        } catch (err) {
-            console.error(err);
-            const body = document.getElementById('historyBody');
-            body.innerHTML = `<tr><td colspan="3" class="history-empty">Unable to load history. Ensure backend is running.</td></tr>`;
+            allHistory = await (await fetch(`${API}/histories`)).json();
+            allHistory.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            document.getElementById('heroCount').innerHTML = `${allHistory.length} <span>records</span>`;
+            render(allHistory);
+        } catch {
+            document.getElementById('historyList').innerHTML='<div class="empty"><div class="eicon">❌</div><p>Unable to load history. Ensure backend is running.</p></div>';
         }
     }
 
-    function renderHistories(list) {
-        const body = document.getElementById('historyBody');
-        if (!list || list.length === 0) {
-            body.innerHTML = `<tr><td colspan="3" class="history-empty">No history records found.</td></tr>`;
-            return;
+    function getIcon(desc) {
+        const d = desc.toLowerCase();
+        if (d.includes('deleted'))  return ['🗑️','icon-delete'];
+        if (d.includes('loan'))     return ['🏦','icon-loan'];
+        if (d.includes('interest')) return ['📈','icon-interest'];
+        if (d.includes('created'))  return ['👤','icon-user'];
+        return ['📋','icon-default'];
+    }
+
+    function render(list) {
+        const c = document.getElementById('historyList');
+        if (!list.length) {
+            c.innerHTML='<div class="empty"><div class="eicon">📋</div><p>No history records found.</p></div>'; return;
         }
-
-        body.innerHTML = list.map(h => `
-            <tr>
-                <td>#${h.id}</td>
-                <td>${escapeHtml(h.description)}</td>
-                <td class="date">${formatDate(h.date)}</td>
-            </tr>
-        `).join('');
+        c.innerHTML = list.map((h, i) => {
+            const [icon, iconClass] = getIcon(h.description);
+            const dt = new Date(h.date).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+            return `
+            <div class="history-item">
+                <div class="h-icon ${iconClass}">${icon}</div>
+                <div class="h-body">
+                    <div class="h-desc">${esc(h.description)}</div>
+                    <div class="h-date">${dt}</div>
+                </div>
+                <div class="h-num">#${h.id}</div>
+            </div>`;
+        }).join('');
     }
 
-    function formatDate(d) {
-        if (!d) return '';
-        const dt = new Date(d);
-        if (isNaN(dt)) return d;
-        return dt.toLocaleString();
+    function filterHistory(q) {
+        const filtered = !q ? allHistory : allHistory.filter(h => h.description.toLowerCase().includes(q.toLowerCase()));
+        render(filtered);
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>"']/g, function(c) {
-            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
-        });
+    function esc(s) { return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+    function goBack() {
+        const p = new URLSearchParams();
+        if (userId) p.set('id', userId);
+        p.set('role','admin');
+        location.href = `admin.html?${p.toString()}`;
     }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        getUserIdFromURL();
-        loadHistories();
-    });
+    window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

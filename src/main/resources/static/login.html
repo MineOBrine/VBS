@@ -3,247 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Banking System - Login</title>
+    <title>Login — VBS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --primary:#486f5d;--primary2:#2d4a3e;
+            --ink:#0f0e17;--paper:#fafaf8;--surface:#fff;
+            --border:#e2e1f0;--muted:#6b7280;
+            --admin1:#1e293b;--admin2:#334155;
         }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Quicksand',sans-serif;
+            background:var(--paper);min-height:100vh;
+            display:flex;align-items:center;justify-content:center;
+            padding:24px 16px;position:relative;overflow:hidden;
+        }
+        body::before,body::after{
+            content:'';position:fixed;border-radius:50%;
+            filter:blur(90px);opacity:.15;pointer-events:none;z-index:0;
+        }
+        body::before{width:520px;height:520px;background:radial-gradient(circle,#486f5d,#2d4a3e);top:-120px;right:-100px}
+        body::after{width:420px;height:420px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-100px;left:-80px}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .card{
+            position:relative;z-index:1;width:100%;max-width:440px;
+            background:var(--surface);border-radius:24px;
+            box-shadow:0 4px 6px -1px rgba(0,0,0,.07),0 24px 48px -8px rgba(72,111,93,.15);
+            border:1px solid var(--border);overflow:hidden;
+            animation:up .4s ease both;
         }
+        @keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 
-        .container {
-            width: 90%;
-            max-width: 450px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+        .card-header{padding:30px 34px 26px;border-bottom:1px solid var(--border)}
+        .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+        .brand-logo{
+            width:36px;height:36px;
+            background:linear-gradient(135deg,var(--primary),var(--primary2));
+            border-radius:10px;display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:15px;font-weight:700;
         }
+        .brand-name{font-size:19px;font-weight:700;color:var(--ink)}
+        .card-header h1{font-size:23px;font-weight:700;color:var(--ink);margin-bottom:5px}
+        .card-header p{font-size:13px;color:var(--muted);font-weight:500}
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px;
-            text-align: center;
-            color: white;
-        }
+        .card-body{padding:26px 34px 30px}
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
+        /* Role cards */
+        .role-label{font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+        .role-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+        .role-card{
+            border:2px solid var(--border);border-radius:12px;
+            padding:13px 12px;cursor:pointer;transition:all .2s;
+            position:relative;user-select:none;
         }
+        .role-card:hover{border-color:#8ab5a3;background:#faf9ff}
+        .role-card.selected.customer{border-color:var(--primary);background:#f0f7f4}
+        .role-card.selected.admin{border-color:var(--admin1);background:#f8fafc}
+        .role-card input[type="radio"]{display:none}
+        .role-icon{font-size:20px;margin-bottom:6px;display:block}
+        .role-title{font-size:13px;font-weight:700;color:var(--ink)}
+        .role-check{
+            display:none;position:absolute;top:8px;right:8px;
+            width:17px;height:17px;border-radius:50%;
+            align-items:center;justify-content:center;font-size:9px;color:#fff;
+        }
+        .role-card.selected.customer .role-check{display:flex;background:var(--primary)}
+        .role-card.selected.admin    .role-check{display:flex;background:var(--admin1)}
 
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
+        /* Fields */
+        .field{display:flex;flex-direction:column;margin-bottom:16px}
+        .field label{font-size:12px;font-weight:700;color:#374151;margin-bottom:6px}
+        .field input{
+            padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;
+            font-size:14px;font-family:'Quicksand',sans-serif;font-weight:500;
+            color:var(--ink);transition:all .2s;
         }
+        .field input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(72,111,93,.1)}
+        .field input::placeholder{color:#c4c4ce}
 
-        .content {
-            padding: 40px 30px;
-        }
+        .divider{height:1px;background:var(--border);margin:18px 0}
 
-        .form-group {
-            margin-bottom: 20px;
+        .btn-submit{
+            width:100%;padding:13px;border:none;border-radius:11px;
+            font-size:15px;font-weight:700;font-family:'Quicksand',sans-serif;
+            cursor:pointer;transition:all .25s;
         }
+        .btn-submit.customer-mode{
+            background:linear-gradient(135deg,var(--primary),var(--primary2));
+            color:#fff;box-shadow:0 4px 14px rgba(72,111,93,.3);
+        }
+        .btn-submit.customer-mode:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(72,111,93,.35)}
+        .btn-submit.admin-mode{
+            background:linear-gradient(135deg,var(--admin1),var(--admin2));
+            color:#fff;box-shadow:0 4px 14px rgba(30,41,59,.25);
+        }
+        .btn-submit.admin-mode:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(30,41,59,.3)}
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
-        }
+        .message{padding:11px 13px;border-radius:9px;font-size:13px;font-weight:600;margin-bottom:14px;display:none}
+        .message.show{display:block}
+        .message.success{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+        .message.error  {background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+        .card-footer{
+            padding:15px 34px 22px;border-top:1px solid var(--border);
+            display:flex;justify-content:space-between;align-items:center;
         }
+        .card-footer span{font-size:13px;color:var(--muted);font-weight:500}
+        .card-footer a{font-size:13px;color:var(--primary);font-weight:700;text-decoration:none;cursor:pointer}
+        .card-footer a:hover{text-decoration:underline}
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .link {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .link a:hover {
-            text-decoration: underline;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .message.show {
-            display: block;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 25px;
-            text-align: center;
-        }
+        @media(max-width:400px){.card-header,.card-body,.card-footer{padding-left:20px;padding-right:20px}}
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>VBS</h1>
-        <p>Virtual Banking System</p>
+<div class="card">
+    <div class="card-header">
+        <div class="brand">
+            <div class="brand-logo">VB</div>
+            <span class="brand-name">VBS</span>
+        </div>
+        <h1>Welcome back</h1>
+        <p>Sign in to your Virtual Banking account</p>
     </div>
-
-    <div class="content">
-        <h2>Login</h2>
-
+    <div class="card-body">
         <div id="loginMessage" class="message"></div>
 
-        <form id="loginForm">
-            <div class="form-group">
+        <form id="loginForm" autocomplete="off">
+            <div class="role-label">Sign in as</div>
+            <div class="role-cards">
+                <label class="role-card selected customer" id="roleCustomer">
+                    <input type="radio" name="role" value="customer" checked>
+                    <div class="role-check">✓</div>
+                    <span class="role-icon">🧑‍💼</span>
+                    <div class="role-title">Customer</div>
+                </label>
+                <label class="role-card" id="roleAdmin">
+                    <input type="radio" name="role" value="admin">
+                    <div class="role-check">✓</div>
+                    <span class="role-icon">🛡️</span>
+                    <div class="role-title">Admin</div>
+                </label>
+            </div>
+
+            <div class="field">
                 <label>Username</label>
-                <input type="text" id="loginUsername" required>
+                <input type="text" id="loginUsername" required placeholder="Enter your username">
             </div>
-
-            <div class="form-group">
+            <div class="field">
                 <label>Password</label>
-                <input type="password" id="loginPassword" required>
+                <input type="password" id="loginPassword" required placeholder="Enter your password">
             </div>
 
-            <div class="form-group">
-                <label>Role</label>
-                <select id="loginRole" required>
-                    <option value="">Select Role</option>
-                    <option value="customer">Customer</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn">Login</button>
+            <div class="divider"></div>
+            <button type="submit" class="btn-submit customer-mode" id="submitBtn">Sign In →</button>
         </form>
-
-        <div class="link">
-            Don't have an account? <a onclick="window.location.href='signup.html'">Sign Up</a>
-        </div>
-        <div class="link">
-            <a onclick="window.location.href='home.html'">← Back to Home</a>
-        </div>
+    </div>
+    <div class="card-footer">
+        <span>No account? <a onclick="window.location.href='signup.html'">Sign up</a></span>
+        <a onclick="window.location.href='home.html'">← Home</a>
     </div>
 </div>
 
 <script>
     const API_URL = 'http://localhost:8081';
+    let selectedRole = 'customer';
 
-    function showMessage(elementId, message, type) {
-        const messageEl = document.getElementById(elementId);
-        messageEl.textContent = message;
-        messageEl.className = `message ${type} show`;
-    }
+    document.querySelectorAll('.role-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected','customer','admin'));
+            const val = card.querySelector('input[type="radio"]').value;
+            card.classList.add('selected', val);
+            selectedRole = val;
+            const btn = document.getElementById('submitBtn');
+            btn.className = 'btn-submit ' + (val === 'admin' ? 'admin-mode' : 'customer-mode');
+        });
+    });
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        const loginData = {
-            username: document.getElementById('loginUsername').value,
-            password: document.getElementById('loginPassword').value,
-            role: document.getElementById('loginRole').value
-        };
-
         try {
-            const response = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(loginData)
+            const res    = await fetch(`${API_URL}/login`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    username: document.getElementById('loginUsername').value,
+                    password: document.getElementById('loginPassword').value,
+                    role: selectedRole
+                })
             });
-
-            const result = (await response.text()).trim();
-
+            const result = (await res.text()).trim();
             if (/^\d+$/.test(result)) {
-                showMessage('loginMessage', 'Login successful! Redirecting...', 'success');
-
+                showMessage('loginMessage','Login successful! Redirecting…','success');
                 localStorage.clear();
-localStorage.setItem("userId", result);
-
-const role = loginData.role.trim().toLowerCase();
-localStorage.setItem("role", role);
-
-setTimeout(() => {
-if (role === "admin") {
-    window.location.href = `admin.html?id=${result}`;
-} else {
-    window.location.href = `dashboard.html?id=${result}`;
-}
-}, 800);
-
+                localStorage.setItem('userId', result);
+                localStorage.setItem('role', selectedRole);
+                setTimeout(() => {
+                    window.location.href = selectedRole === 'admin'
+                        ? `admin.html?id=${result}`
+                        : `dashboard.html?id=${result}`;
+                }, 700);
             } else {
                 showMessage('loginMessage', result, 'error');
             }
-        } catch (error) {
-            showMessage('loginMessage', 'Error connecting to server. Please try again.', 'error');
-            console.error('Login error:', error);
-        }
+        } catch { showMessage('loginMessage','Cannot connect to server.','error'); }
     });
-</script>
 
+    function showMessage(id, text, type) {
+        const el = document.getElementById(id);
+        el.textContent = text;
+        el.className = 'message ' + type + ' show';
+    }
+</script>
 </body>
 </html>

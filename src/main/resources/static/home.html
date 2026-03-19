@@ -3,155 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Banking System - Home</title>
+    <title>VBS — Virtual Banking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary:#486f5d; --primary2:#2d4a3e;
+            --ink:#0f0e17; --paper:#fafaf8; --surface:#fff;
+            --border:#e2e1f0; --muted:#6b7280;
         }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Quicksand',sans-serif;
+            background:var(--paper); min-height:100vh;
+            display:flex; align-items:center; justify-content:center;
+            padding:24px 16px; position:relative; overflow:hidden;
+        }
+        body::before,body::after{
+            content:''; position:fixed; border-radius:50%;
+            filter:blur(90px); opacity:.15; pointer-events:none; z-index:0;
+        }
+        body::before{width:520px;height:520px;background:radial-gradient(circle,#486f5d,#2d4a3e);top:-120px;right:-100px}
+        body::after{width:420px;height:420px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-100px;left:-80px}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .card{
+            position:relative;z-index:1;
+            width:100%;max-width:440px;
+            background:var(--surface);
+            border-radius:24px;
+            box-shadow:0 4px 6px -1px rgba(0,0,0,.07),0 24px 48px -8px rgba(72,111,93,.15);
+            border:1px solid var(--border);
+            overflow:hidden;
+            animation:up .4s ease both;
         }
+        @keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 
-        .container {
-            width: 90%;
-            max-width: 450px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+        .card-top{
+            background:linear-gradient(135deg,var(--primary) 0%,var(--primary2) 100%);
+            padding:40px 36px 36px;
+            text-align:center;
+            color:#fff;
         }
+        .brand-logo{
+            width:52px;height:52px;
+            background:rgba(255,255,255,.2);
+            border:2px solid rgba(255,255,255,.35);
+            border-radius:14px;
+            display:inline-flex;align-items:center;justify-content:center;
+            font-size:22px;font-weight:700;letter-spacing:-1px;
+            margin-bottom:16px;
+        }
+        .card-top h1{font-size:28px;font-weight:700;margin-bottom:6px}
+        .card-top p{font-size:14px;opacity:.85;font-weight:500}
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px;
-            text-align: center;
-            color: white;
-        }
+        .card-body{padding:36px}
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
+        .tagline{
+            text-align:center;
+            margin-bottom:28px;
         }
+        .tagline h2{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px}
+        .tagline p{font-size:14px;color:var(--muted);line-height:1.6;font-weight:500}
 
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
+        .features{
+            display:grid;grid-template-columns:1fr 1fr;
+            gap:10px;margin-bottom:30px;
         }
+        .feature{
+            background:var(--paper);
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:14px;
+            text-align:center;
+        }
+        .feature-icon{font-size:22px;margin-bottom:6px}
+        .feature h3{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:3px}
+        .feature p{font-size:11px;color:var(--muted);font-weight:500}
 
-        .content {
-            padding: 40px 30px;
-        }
+        .btn-group{display:flex;gap:12px}
 
-        .home-content {
-            text-align: center;
+        .btn{
+            flex:1;padding:14px;border:none;border-radius:12px;
+            font-size:15px;font-weight:700;font-family:'Quicksand',sans-serif;
+            cursor:pointer;transition:all .25s;
         }
-
-        .home-content h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 24px;
+        .btn-primary{
+            background:linear-gradient(135deg,var(--primary),var(--primary2));
+            color:#fff;box-shadow:0 4px 14px rgba(72,111,93,.3);
         }
-
-        .home-content p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 30px;
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(72,111,93,.35)}
+        .btn-secondary{
+            background:var(--paper);color:var(--ink);
+            border:1.5px solid var(--border);
         }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 30px 0;
-        }
-
-        .feature {
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .feature-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .feature h3 {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .feature p {
-            font-size: 12px;
-            color: #666;
-        }
+        .btn-secondary:hover{border-color:#8ab5a3;background:#f0f7f4}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>VBS</h1>
-            <p>Virtual Banking System</p>
+<div class="card">
+    <div class="card-top">
+        <div class="brand-logo">VB</div>
+        <h1>Virtual Banking</h1>
+        <p>Secure · Simple · Smart</p>
+    </div>
+    <div class="card-body">
+        <div class="tagline">
+            <h2>Welcome to VBS</h2>
+            <p>Manage your finances with confidence — deposits, transfers, loans, and fixed deposits all in one place.</p>
         </div>
-
-        <div class="content">
-            <div class="home-content">
-                <h2>Welcome to VBS</h2>
-                <p>Experience secure and convenient banking at your fingertips. Manage your finances with confidence.</p>
-                
-                
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="window.location.href='login.html'">Login</button>
-                    <button class="btn btn-secondary" onclick="window.location.href='signup.html'">Sign Up</button>
-                </div>
-            </div>
+        <div class="features">
+            <div class="feature"><div class="feature-icon">💸</div><h3>Transfers</h3><p>Instant money transfers</p></div>
+            <div class="feature"><div class="feature-icon">🏦</div><h3>Loans</h3><p>Apply &amp; track loans</p></div>
+            <div class="feature"><div class="feature-icon">🏛️</div><h3>Fixed Deposits</h3><p>Grow your savings</p></div>
+            <div class="feature"><div class="feature-icon">📈</div><h3>Interest</h3><p>4% p.a. on savings</p></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="window.location.href='login.html'">Login</button>
+            <button class="btn btn-secondary" onclick="window.location.href='signup.html'">Sign Up</button>
         </div>
     </div>
+</div>
 </body>
 </html>

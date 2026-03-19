@@ -3,253 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Banking System - Sign Up</title>
+    <title>Create Account — VBS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary:  #486f5d;
+            --primary2: #2d4a3e;
+            --ink:      #0f0e17;
+            --paper:    #fafaf8;
+            --surface:  #ffffff;
+            --border:   #e2e1f0;
+            --muted:    #6b7280;
+            --green:    #16a34a;
+            --green-bg: #dcfce7;
+            --blue:     #2563eb;
+            --blue-bg:  #dbeafe;
+            --admin1:   #1e293b;
+            --admin2:   #334155;
         }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family:'Quicksand',sans-serif;
+            background:var(--paper);
+            min-height:100vh;
+            display:flex; align-items:center; justify-content:center;
+            padding:24px 16px;
+            position:relative; overflow-x:hidden;
+        }
+        body::before,body::after {
+            content:''; position:fixed; border-radius:50%;
+            filter:blur(90px); opacity:.15; pointer-events:none; z-index:0;
+        }
+        body::before { width:500px;height:500px; background:radial-gradient(circle,#486f5d,#2d4a3e); top:-100px;right:-100px; }
+        body::after  { width:400px;height:400px; background:radial-gradient(circle,#f97316,#fb923c); bottom:-80px;left:-80px; }
+
+        .card {
+            position:relative; z-index:1;
+            width:100%; max-width:520px;
+            background:var(--surface);
+            border-radius:20px;
+            box-shadow:0 4px 6px -1px rgba(0,0,0,.07), 0 24px 48px -8px rgba(72,111,93,.15);
+            border:1px solid var(--border);
+            overflow:hidden;
+            animation:slideUp .4s ease both;
+        }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+        .card-header { padding:30px 34px 24px; border-bottom:1px solid var(--border); }
+        .brand { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+        .brand-logo {
+            width:36px;height:36px;
+            background:linear-gradient(135deg,var(--primary),var(--primary2));
+            border-radius:10px; display:flex; align-items:center; justify-content:center;
+            color:white; font-family:'Quicksand',sans-serif; font-size:16px;
+        }
+        .brand-name { font-family:'Quicksand',sans-serif; font-size:20px; font-weight:700; color:var(--ink); }
+        .card-header h1 { font-family:'Quicksand',sans-serif; font-size:24px; font-weight:700; color:var(--ink); margin-bottom:5px; }
+        .card-header p  { font-size:13px; color:var(--muted); }
+
+        .card-body { padding:26px 34px 30px; }
+        .card-footer {
+            padding:16px 34px 22px; border-top:1px solid var(--border);
+            display:flex; justify-content:space-between; align-items:center;
+        }
+        .card-footer span { font-size:13px; color:var(--muted); }
+        .card-footer a { font-size:13px; color:var(--primary); font-weight:600; text-decoration:none; cursor:pointer; }
+        .card-footer a:hover { text-decoration:underline; }
+
+        /* Step label */
+        .step-label {
+            font-size:10.5px; font-weight:700; letter-spacing:1.2px;
+            text-transform:uppercase; color:var(--muted); margin-bottom:10px;
         }
 
-        .container {
-            width: 90%;
-            max-width: 450px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+        /* Role cards */
+        .role-cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:24px; }
+        .role-card {
+            border:2px solid var(--border); border-radius:12px; padding:15px 13px;
+            cursor:pointer; transition:all .2s; position:relative; user-select:none;
         }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px;
-            text-align: center;
-            color: white;
+        .role-card:hover { border-color:#8ab5a3; background:#faf9ff; }
+        .role-card.selected.customer { border-color:var(--primary); background:#f0f7f4; }
+        .role-card.selected.admin    { border-color:var(--admin1);  background:#f8fafc; }
+        .role-card input[type="radio"] { display:none; }
+        .role-icon  { font-size:22px; margin-bottom:7px; display:block; }
+        .role-title { font-size:14px; font-weight:600; color:var(--ink); margin-bottom:3px; }
+        .role-desc  { font-size:11px; color:var(--muted); line-height:1.4; }
+        .role-check {
+            display:none; position:absolute; top:9px;right:9px;
+            width:18px;height:18px; border-radius:50%;
+            align-items:center; justify-content:center; font-size:10px; color:white;
         }
+        .role-card.selected.customer .role-check { display:flex; background:var(--primary); }
+        .role-card.selected.admin    .role-check { display:flex; background:var(--admin1); }
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
+        /* Fields */
+        .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-bottom:13px; }
+        .field { display:flex; flex-direction:column; }
+        .field.full { grid-column:1/-1; }
+        .field label { font-size:12px; font-weight:600; color:#374151; margin-bottom:6px; }
+        .field input {
+            padding:11px 13px; border:1.5px solid var(--border); border-radius:9px;
+            font-size:14px; font-family:inherit; color:var(--ink); transition:all .2s;
         }
+        .field input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(72,111,93,.1); }
+        .field input::placeholder { color:#c4c4ce; }
 
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
+        /* Admin notice */
+        .admin-notice {
+            background:linear-gradient(135deg,#0f172a,#1e293b);
+            border-radius:12px; padding:0 18px; display:flex; gap:13px; align-items:flex-start;
+            overflow:hidden; transition:max-height .35s ease,opacity .35s ease,padding .35s ease;
+            max-height:0; opacity:0; pointer-events:none;
         }
+        .admin-notice.show { max-height:380px; opacity:1; pointer-events:auto; padding:17px 18px; margin-bottom:16px; }
+        .admin-notice-icon { font-size:26px; flex-shrink:0; margin-top:2px; }
+        .admin-notice h4 { font-size:13px; font-weight:600; color:#e2e8f0; margin-bottom:4px; }
+        .admin-notice p  { font-size:11.5px; color:#94a3b8; line-height:1.5; }
+        .admin-perms { display:flex; flex-wrap:wrap; gap:4px; margin-top:7px; }
+        .admin-perm  { padding:2px 7px; background:rgba(255,255,255,.08); border-radius:4px; font-size:10px; color:#cbd5e1; font-weight:500; }
 
-        .content {
-            padding: 40px 30px;
+        /* Account type section */
+        .account-section {
+            overflow:hidden;
+            transition:max-height .35s ease,opacity .35s ease;
+            max-height:300px; opacity:1;
         }
+        .account-section.hidden { max-height:0; opacity:0; pointer-events:none; }
 
-        .form-group {
-            margin-bottom: 20px;
+        .account-cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0 18px; }
+        .account-card {
+            border:2px solid var(--border); border-radius:12px; padding:15px 13px;
+            cursor:pointer; transition:all .2s; position:relative; user-select:none;
         }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
+        .account-card:hover { background:#fafafa; }
+        .account-card.selected.savings { border-color:var(--green); background:var(--green-bg); }
+        .account-card.selected.current { border-color:var(--blue);  background:var(--blue-bg); }
+        .account-card input[type="radio"] { display:none; }
+        .acc-icon  { font-size:20px; margin-bottom:6px; display:block; }
+        .acc-title { font-size:13px; font-weight:600; color:var(--ink); margin-bottom:3px; }
+        .acc-desc  { font-size:11px; color:var(--muted); line-height:1.4; }
+        .acc-badge {
+            display:none; position:absolute; top:8px;right:8px;
+            padding:2px 7px; border-radius:20px; font-size:10px; font-weight:700;
         }
+        .account-card.selected.savings .acc-badge { display:inline-block; background:var(--green); color:white; }
+        .account-card.selected.current .acc-badge { display:inline-block; background:var(--blue);  color:white; }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+        /* Divider */
+        .divider { height:1px; background:var(--border); margin:18px 0; }
+
+        /* Submit */
+        .btn-submit {
+            width:100%; padding:13px; border:none; border-radius:11px;
+            font-size:15px; font-weight:600; font-family:inherit; cursor:pointer;
+            transition:all .25s; letter-spacing:.2px;
         }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
+        .btn-submit.customer-mode {
+            background:linear-gradient(135deg,var(--primary),var(--primary2));
+            color:white; box-shadow:0 4px 14px rgba(72,111,93,.3);
         }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .btn-submit.customer-mode:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(72,111,93,.35); }
+        .btn-submit.admin-mode {
+            background:linear-gradient(135deg,var(--admin1),var(--admin2));
+            color:white; box-shadow:0 4px 14px rgba(30,41,59,.25);
         }
+        .btn-submit.admin-mode:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(30,41,59,.3); }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+        /* Message */
+        .message { padding:11px 13px; border-radius:9px; font-size:13px; margin-bottom:14px; display:none; }
+        .message.show    { display:block; }
+        .message.success { background:#f0fdf4; color:var(--green); border:1px solid #bbf7d0; }
+        .message.error   { background:#fef2f2; color:#dc2626;      border:1px solid #fecaca; }
 
-        .link {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .link a:hover {
-            text-decoration: underline;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .message.show {
-            display: block;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 25px;
-            text-align: center;
+        @media (max-width:480px) {
+            .card-body,.card-header,.card-footer { padding-left:20px;padding-right:20px; }
+            .fields-grid,.role-cards,.account-cards { grid-template-columns:1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>VBS</h1>
-            <p>Virtual Banking System</p>
+<div class="card">
+    <div class="card-header">
+        <div class="brand">
+            <div class="brand-logo">VB</div>
+            <span class="brand-name">VBS</span>
         </div>
-
-        <div class="content">
-            <h2>Sign Up</h2>
-            
-            <div id="signupMessage" class="message"></div>
-
-            <form id="signupForm">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="signupName" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="signupUsername" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="signupEmail" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="signupPassword" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Role</label>
-                    <select id="signupRole" required>
-                        <option value="">Select Role</option>
-                        <option value="customer">Customer</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn">Create Account</button>
-            </form>
-
-            <div class="link">
-                Already have an account? <a onclick="window.location.href='login.html'">Login</a>
-            </div>
-            <div class="link">
-                <a onclick="window.location.href='home.html'">← Back to Home</a>
-            </div>
-        </div>
+        <h1>Create your account</h1>
+        <p>Join Virtual Banking System in under a minute.</p>
     </div>
 
-    <script>
-    const showMessage = (id, text, type) => {
-        const msg = document.getElementById(id);
-        msg.innerText = text;
-        msg.className = "message " + type + " show";
-    };
+    <div class="card-body">
+        <div id="signupMessage" class="message"></div>
 
-    const signupForm = document.getElementById("signupForm");
+        <form id="signupForm" autocomplete="off">
 
-    signupForm.addEventListener("submit", (event) => {
-        event.preventDefault();
+            <div class="step-label">Step 1 — Who are you?</div>
+            <div class="role-cards">
+                <label class="role-card selected customer" id="roleCardCustomer">
+                    <input type="radio" name="role" value="customer" checked>
+                    <div class="role-check">✓</div>
+                    <span class="role-icon">🧑‍💼</span>
+                    <div class="role-title">Customer</div>
+                    <div class="role-desc">Personal banking, transfers, FDs &amp; more</div>
+                </label>
+                <label class="role-card" id="roleCardAdmin">
+                    <input type="radio" name="role" value="admin">
+                    <div class="role-check">✓</div>
+                    <span class="role-icon">🛡️</span>
+                    <div class="role-title">Administrator</div>
+                    <div class="role-desc">Manage users, approve loans &amp; operations</div>
+                </label>
+            </div>
 
-        const signupData = {
-            name: document.getElementById("signupName").value,
-            username: document.getElementById("signupUsername").value,
-            email: document.getElementById("signupEmail").value,
-            password: document.getElementById("signupPassword").value,
-            role: document.getElementById("signupRole").value
-        };
+            <div class="step-label" id="step2Label">Step 2 — Your details</div>
 
-        fetch("http://localhost:8081/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(signupData)
-        })
-        .then(response => response.text())
-        .then(result => {
-            if (result === "Successfully Registered") {
-                showMessage(
-                    "signupMessage",
-                    "Account created successfully! Please login.",
-                    "success"
-                );
+            <div class="fields-grid">
+                <div class="field">
+                    <label>Full Name</label>
+                    <input type="text" id="signupName" required placeholder="First and Last Name">
+                </div>
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" id="signupUsername" required placeholder="e.g. john_doe">
+                </div>
+                <div class="field full">
+                    <label>Email Address</label>
+                    <input type="email" id="signupEmail" required placeholder="you@example.com">
+                </div>
+                <div class="field full">
+                    <label>Password</label>
+                    <input type="password" id="signupPassword" required placeholder="Create a strong password">
+                </div>
+            </div>
 
-                window.location.href = "login.html";
-            } else {
-                showMessage("signupMessage", result, "error");
-            }
-        })
-        .catch(error => {
-            showMessage(
-                "signupMessage",
-                "Error connecting to server. Please try again.",
-                "error"
-            );
-            console.error("Signup error:", error);
+            <!-- Admin notice + invite code (shown only for admin) -->
+            <div class="admin-notice" id="adminNotice">
+                <div class="admin-notice-icon">🔐</div>
+                <div style="width:100%">
+                    <h4>Admin account — invite code required</h4>
+                    <p>Admin accounts can't hold balances or make transactions. Enter your invite code to proceed.</p>
+                    <div class="admin-perms">
+                        <span class="admin-perm">Manage users</span>
+                        <span class="admin-perm">Approve loans</span>
+                        <span class="admin-perm">Apply interest</span>
+                        <span class="admin-perm">View FDs</span>
+                        <span class="admin-perm">System history</span>
+                    </div>
+                    <!-- Invite code field -->
+                    <div style="margin-top:14px">
+                        <label style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#94a3b8;display:block;margin-bottom:7px">Invite Code</label>
+                        <input
+                                type="password"
+                                id="inviteCode"
+                                placeholder="Enter admin invite code"
+                                autocomplete="off"
+                                style="
+                                width:100%;padding:11px 13px;
+                                background:rgba(255,255,255,.08);
+                                border:1.5px solid rgba(255,255,255,.2);
+                                border-radius:10px;
+                                font-family:'Quicksand',sans-serif;
+                                font-size:14px;font-weight:600;
+                                color:#f1f5f9;
+                                transition:all .2s;
+                                outline:none;
+                            "
+                                onfocus="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='rgba(255,255,255,.12)'"
+                                onblur="this.style.borderColor='rgba(255,255,255,.2)';this.style.background='rgba(255,255,255,.08)'"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account type (customers only) -->
+            <div class="account-section" id="accountSection">
+                <div class="step-label">Step 3 — Account type</div>
+                <div class="account-cards">
+                    <label class="account-card selected savings" id="cardSavings">
+                        <input type="radio" name="accountType" value="SAVINGS" checked>
+                        <span class="acc-badge">Selected</span>
+                        <span class="acc-icon">🏦</span>
+                        <div class="acc-title">Savings</div>
+                        <div class="acc-desc">Earn 4% p.a. monthly interest. Zero transaction fees.</div>
+                    </label>
+                    <label class="account-card" id="cardCurrent">
+                        <input type="radio" name="accountType" value="CURRENT">
+                        <span class="acc-badge">Selected</span>
+                        <span class="acc-icon">💼</span>
+                        <div class="acc-title">Current</div>
+                        <div class="acc-desc">No interest. Small service fee. Best for business use.</div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+            <button type="submit" class="btn-submit customer-mode" id="submitBtn">Create Customer Account →</button>
+
+        </form>
+    </div>
+
+    <div class="card-footer">
+        <span>Have an account? <a onclick="window.location.href='login.html'">Sign in</a></span>
+        <a onclick="window.location.href='home.html'">← Home</a>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8081';
+    let selectedRole = 'customer';
+
+    document.querySelectorAll('.role-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected','customer','admin'));
+            const val = card.querySelector('input[type="radio"]').value;
+            card.classList.add('selected', val);
+            selectedRole = val;
+
+            const isAdmin = val === 'admin';
+            document.getElementById('accountSection').classList.toggle('hidden', isAdmin);
+            document.getElementById('adminNotice').classList.toggle('show', isAdmin);
+            document.getElementById('submitBtn').className  = 'btn-submit ' + (isAdmin ? 'admin-mode' : 'customer-mode');
+            document.getElementById('submitBtn').textContent = isAdmin ? 'Create Admin Account →' : 'Create Customer Account →';
+            document.getElementById('step2Label').textContent = isAdmin ? 'Step 2 — Admin details' : 'Step 2 — Your details';
         });
     });
-</script>
 
+    document.querySelectorAll('.account-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.account-card').forEach(c => c.classList.remove('selected','savings','current'));
+            const val = card.querySelector('input[type="radio"]').value;
+            card.classList.add('selected', val.toLowerCase());
+        });
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const accountTypeEl = document.querySelector('input[name="accountType"]:checked');
+
+        // Client-side invite code check for admin
+        if (selectedRole === 'admin') {
+            const code = document.getElementById('inviteCode').value.trim();
+            if (!code) {
+                showMessage('signupMessage', 'Please enter the admin invite code.', 'error');
+                return;
+            }
+        }
+
+        const body = {
+            name:        document.getElementById('signupName').value.trim(),
+            username:    document.getElementById('signupUsername').value.trim(),
+            email:       document.getElementById('signupEmail').value.trim(),
+            password:    document.getElementById('signupPassword').value,
+            role:        selectedRole,
+            accountType: selectedRole === 'admin' ? 'ADMIN' : (accountTypeEl ? accountTypeEl.value : 'SAVINGS'),
+            inviteCode:  selectedRole === 'admin' ? document.getElementById('inviteCode').value.trim() : ''
+        };
+        try {
+            const res    = await fetch(`${API_URL}/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+            const result = await res.text();
+            if (result === 'Successfully Registered') {
+                showMessage('signupMessage', '✅ Account created! Redirecting to login…', 'success');
+                setTimeout(() => window.location.href = 'login.html', 1300);
+            } else {
+                showMessage('signupMessage', result, 'error');
+            }
+        } catch {
+            showMessage('signupMessage', 'Cannot connect to server.', 'error');
+        }
+    });
+
+    function showMessage(id, text, type) {
+        const el = document.getElementById(id);
+        el.textContent = text;
+        el.className = 'message ' + type + ' show';
+    }
+</script>
 </body>
 </html>

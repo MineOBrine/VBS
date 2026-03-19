@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DisplayDto {
-    String username;
-    double balance;
-    String accountType; // SAVINGS | CURRENT
+public class LoanRepayDto {
+    int userId;
+    double amount;
 }

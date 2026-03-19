@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
@@ -27,8 +28,11 @@ public class User {
     String name;
 
     @Column(nullable = false)
-    String role;
+    String role;           // customer | admin
 
     @Column(nullable = false)
     double balance;
+
+    @Column(nullable = false)
+    String accountType;
 }
