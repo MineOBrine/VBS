@@ -111,6 +111,13 @@
         .pagination button:disabled{opacity:.4;cursor:not-allowed}
 
         @media(max-width:600px){.balance-card{flex-direction:column;gap:14px;text-align:center}.balance-amount,.balance-label{text-align:center}}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .sk-light{background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        .sk-tx{height:68px;border-radius:14px;margin-bottom:8px}
+        .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1.5px solid var(--border);z-index:500;box-shadow:0 -4px 20px rgba(0,0,0,.07);padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
+        @media(max-width:768px){.mobile-nav{display:flex}.page{padding-bottom:90px}}
+        .mnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:6px 0;color:var(--muted);transition:color .2s}
+        .mnav-item.active{color:var(--primary)}.mnav-icon{font-size:22px}.mnav-label{font-size:10px;font-weight:700}
     </style>
 </head>
 <body>
@@ -168,6 +175,8 @@
     }
 
     async function load() {
+        // Show skeletons
+        document.getElementById('txList').innerHTML = Array(5).fill('<div class="sk-light sk-tx"></div>').join('');
         try {
             allTx = await (await fetch(`${API}/passbook/${userId}`)).json();
             if (allTx.length) {
@@ -181,11 +190,11 @@
 
     function getType(desc) {
         const d = desc.toLowerCase();
-        if (d.includes('interest'))                              return 'interest';
-        if (d.includes('fee') || d.includes('charge'))          return 'fee';
+        if (d.includes('interest'))                                                         return 'interest';
+        if (d.startsWith('transaction fee'))                                                return 'fee';
         if (d.includes('fixed deposit')||d.includes('matured')||d.includes('broken')||d.includes('auto-renew')) return 'fd';
-        if (d.includes('deposit'))                              return 'deposit';
-        if (d.includes('withdrawal')||d.includes('withdrawn'))  return 'withdrawal';
+        if (d.includes('withdrawal')||d.includes('withdrawn'))                              return 'withdrawal';
+        if (d.includes('deposit'))                                                          return 'deposit';
         return 'transfer';
     }
 
@@ -272,8 +281,27 @@
     }
 
     function go(p) { currentPage=p; render(); window.scrollTo({top:0,behavior:'smooth'}); }
-    function logout() { localStorage.clear(); location.href='home.html'; }
+    function logout() { document.getElementById('pbLogoutModal').style.display='flex'; }
+    function doLogout() { localStorage.clear(); location.href='home.html'; }
     window.addEventListener('DOMContentLoaded', init);
 </script>
+<div id="pbLogoutModal" style="display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:#fff;border-radius:20px;padding:32px;max-width:360px;width:90%;text-align:center;border:1px solid #e2e1f0;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+        <div style="font-size:48px;margin-bottom:14px">👋</div>
+        <div style="font-size:20px;font-weight:700;color:#0f0e17;margin-bottom:8px">Signing out?</div>
+        <div style="font-size:13px;color:#6b7280;font-weight:500;margin-bottom:24px">You'll need to log back in to access your account.</div>
+        <div style="display:flex;gap:10px">
+            <button onclick="document.getElementById('pbLogoutModal').style.display='none'" style="flex:1;padding:12px;background:#fafaf8;color:#6b7280;border:1.5px solid #e2e1f0;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Stay</button>
+            <button onclick="doLogout()" style="flex:1;padding:12px;background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Sign out</button>
+        </div>
+    </div>
+</div>
+<nav class="mobile-nav">
+    <a class="mnav-item" href="dashboard.html"><span class="mnav-icon">🏠</span><span class="mnav-label">Home</span></a>
+    <a class="mnav-item active" href="passbook.html"><span class="mnav-icon">📖</span><span class="mnav-label">Passbook</span></a>
+    <a class="mnav-item" href="loans.html"><span class="mnav-icon">🏦</span><span class="mnav-label">Loans</span></a>
+    <a class="mnav-item" href="fd.html"><span class="mnav-icon">🏛️</span><span class="mnav-label">FDs</span></a>
+    <a class="mnav-item" href="profile.html"><span class="mnav-icon">👤</span><span class="mnav-label">Profile</span></a>
+</nav>
 </body>
 </html>

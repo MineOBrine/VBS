@@ -2,6 +2,7 @@ package com.vbs.demo.controller;
 
 import com.vbs.demo.dto.DisplayDto;
 import com.vbs.demo.dto.LoginDto;
+import com.vbs.demo.dto.RegisterDto;
 import com.vbs.demo.dto.UpdateDto;
 import com.vbs.demo.models.History;
 import com.vbs.demo.models.Transaction;
@@ -20,21 +21,24 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class UserController {
 
+    private static final String ADMIN_INVITE_CODE = "VBS@Admin2025";
+
     @Autowired UserRepo userRepo;
     @Autowired HistoryRepo historyRepo;
     @Autowired TransactionRepo transactionRepo;
     @Autowired InterestScheduler interestScheduler;
 
-    // ── Change this to whatever secret you want ────────────────────────────────
-    private static final String ADMIN_INVITE_CODE = "VBS@Admin2025";
+    // ── Generate account number ─────────────────────────────────────────────
+    private String genAccNo(int id) {
+        return "VBS" + String.format("%010d", id);
+    }
 
+    // ── Register ───────────────────────────────────────────────────────────
     @PostMapping("/register")
-    public String register(@RequestBody com.vbs.demo.dto.RegisterDto dto) {
-        // Validate invite code for admin signups
+    public String register(@RequestBody RegisterDto dto) {
         if ("admin".equalsIgnoreCase(dto.getRole())) {
-            if (dto.getInviteCode() == null || !dto.getInviteCode().equals(ADMIN_INVITE_CODE)) {
+            if (dto.getInviteCode() == null || !dto.getInviteCode().equals(ADMIN_INVITE_CODE))
                 return "Invalid invite code. Admin accounts require a valid invite code.";
-            }
         }
 
         User user = new User();
@@ -44,18 +48,17 @@ public class UserController {
         user.setPassword(dto.getPassword());
         user.setRole(dto.getRole());
         user.setBalance(0);
+        user.setAccountType("admin".equalsIgnoreCase(dto.getRole()) ? "ADMIN"
+                : (dto.getAccountType() != null && !dto.getAccountType().isBlank()
+                ? dto.getAccountType() : "SAVINGS"));
 
-        if ("admin".equalsIgnoreCase(dto.getRole())) {
-            user.setAccountType("ADMIN");
-        } else {
-            String accType = dto.getAccountType();
-            user.setAccountType(accType != null && !accType.isBlank() ? accType : "SAVINGS");
-        }
-
-        userRepo.save(user);
+        userRepo.save(user);                          // first save → gets ID
+        user.setAccountNumber(genAccNo(user.getId())); // set acc number
+        userRepo.save(user);                          // second save → persists acc no
         return "Successfully Registered";
     }
 
+    // ── Login ──────────────────────────────────────────────────────────────
     @PostMapping("/login")
     public String login(@RequestBody LoginDto u) {
         User user = userRepo.findByUsername(u.getUsername());
@@ -65,17 +68,23 @@ public class UserController {
         return String.valueOf(user.getId());
     }
 
+    // ── Dashboard details ──────────────────────────────────────────────────
     @GetMapping("/get-details/{id}")
     public DisplayDto display(@PathVariable int id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         DisplayDto dto = new DisplayDto();
         dto.setUsername(user.getUsername());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
         dto.setBalance(user.getBalance());
         dto.setAccountType(user.getAccountType() != null ? user.getAccountType() : "SAVINGS");
+        dto.setAccountNumber(user.getAccountNumber() != null ? user.getAccountNumber() : genAccNo(user.getId()));
+        dto.setCreatedAt(user.getCreatedAt());
         return dto;
     }
 
+    // ── Update profile ─────────────────────────────────────────────────────
     @PostMapping("/update")
     public String update(@RequestBody UpdateDto obj) {
         User user = userRepo.findById(obj.getId())
@@ -97,6 +106,7 @@ public class UserController {
         return "Updated Successfully";
     }
 
+    // ── Admin: add user ────────────────────────────────────────────────────
     @PostMapping("/add/{adminId}")
     public String add(@RequestBody User user, @PathVariable int adminId) {
         if ("admin".equalsIgnoreCase(user.getRole())) {
@@ -105,6 +115,9 @@ public class UserController {
             user.setAccountType("SAVINGS");
         }
         userRepo.save(user);
+        user.setAccountNumber(genAccNo(user.getId()));
+        userRepo.save(user);
+
         if (user.getBalance() > 0) {
             User saved = userRepo.findByUsername(user.getUsername());
             Transaction t = new Transaction();
@@ -116,11 +129,12 @@ public class UserController {
         }
         History h = new History();
         h.setDescription("Admin " + adminId + " created user " + user.getUsername()
-                + " (" + user.getAccountType() + " account)");
+                + " (" + user.getAccountType() + ")");
         historyRepo.save(h);
         return "Added Successfully";
     }
 
+    // ── Admin: delete user ─────────────────────────────────────────────────
     @DeleteMapping("/delete-user/{userId}/admin/{adminId}")
     public String delete(@PathVariable int userId, @PathVariable int adminId) {
         User user = userRepo.findById(userId)
@@ -133,6 +147,7 @@ public class UserController {
         return "User Deleted Successfully";
     }
 
+    // ── Admin: list / search ───────────────────────────────────────────────
     @GetMapping("/users")
     public List<User> getAllUsers(@RequestParam String sortBy, @RequestParam String order) {
         Sort sort = order.equalsIgnoreCase("desc")
@@ -145,6 +160,7 @@ public class UserController {
         return userRepo.findByUsernameContainingIgnoreCaseAndRole(keyword, "customer");
     }
 
+    // ── Admin: manual interest ─────────────────────────────────────────────
     @PostMapping("/admin/apply-interest/{adminId}")
     public String manualApplyInterest(@PathVariable int adminId) {
         History h = new History();

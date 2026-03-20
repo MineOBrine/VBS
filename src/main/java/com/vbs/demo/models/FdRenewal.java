@@ -12,37 +12,43 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class FdRenewal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
-    @Column(nullable = false, unique = true)
-    String username;
+    @Column(nullable = false)
+    int fdId;              // reference to the parent FixedDeposit
 
     @Column(nullable = false)
-    String password;
-
-    @Column(nullable = false, unique = true)
-    String email;
+    int userId;
 
     @Column(nullable = false)
-    String name;
+    int renewalNumber;     // 1st renewal, 2nd renewal, etc.
 
     @Column(nullable = false)
-    String role;           // customer | admin
+    double principal;
 
     @Column(nullable = false)
-    double balance;
+    double interestRate;
 
     @Column(nullable = false)
-    String accountType;    // SAVINGS | CURRENT | ADMIN
+    int tenure;
 
-    @Column(unique = true)
-    String accountNumber;  // e.g. VBS0000000001
+    @Column(nullable = false)
+    double interestEarned;
+
+    @Column(nullable = false)
+    double maturityAmount;
+
+    @Column(nullable = false)
+    LocalDateTime startDate;
+
+    @Column(nullable = false)
+    LocalDateTime maturityDate;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    LocalDateTime createdAt;
+    LocalDateTime renewedAt;
 }

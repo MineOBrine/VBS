@@ -150,6 +150,13 @@
         .btn-ghost:hover{border-color:#8ab5a3;color:var(--primary)}
 
         @media(max-width:580px){.form-grid{grid-template-columns:1fr}}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .sk-light{background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        .sk-loan{height:160px;border-radius:16px;margin-bottom:14px}
+        .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1.5px solid var(--border);z-index:500;box-shadow:0 -4px 20px rgba(0,0,0,.07);padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
+        @media(max-width:768px){.mobile-nav{display:flex}.page{padding-bottom:90px}}
+        .mnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:6px 0;color:var(--muted);transition:color .2s}
+        .mnav-item.active{color:var(--primary)}.mnav-icon{font-size:22px}.mnav-label{font-size:10px;font-weight:700}
     </style>
 </head>
 <body>
@@ -239,6 +246,7 @@
     }
 
     async function loadLoans() {
+        document.getElementById('loansList').innerHTML = Array(2).fill('<div class="sk-light sk-loan"></div>').join('');
         try {
             const loans = await (await fetch(`${API}/loan/user/${userId}`)).json();
             renderLoans(loans);
@@ -369,9 +377,35 @@
         setTimeout(()=>el.classList.remove('show'),4000);
     }
     function goBack() { location.href='dashboard.html'; }
-    function logout() { localStorage.clear(); location.href='home.html'; }
-    window.addEventListener('click',e=>{ if(e.target===document.getElementById('repayModal')) closeRepay(); });
+    function logout() { openLogoutConfirm(); }
+    function openLogoutConfirm() { document.getElementById('logoutModal').classList.add('show'); }
+    function doLogout() { localStorage.clear(); location.href='home.html'; }
+    window.addEventListener('click',e=>{
+        if(e.target===document.getElementById('repayModal')) closeRepay();
+        if(e.target===document.getElementById('logoutModal')) document.getElementById('logoutModal').classList.remove('show');
+    });
     window.addEventListener('DOMContentLoaded',init);
 </script>
+
+<!-- Confirm Logout Modal -->
+<div id="logoutModal" class="modal">
+    <div class="modal-card" style="max-width:340px;text-align:center;padding:32px">
+        <div style="font-size:48px;margin-bottom:14px">👋</div>
+        <div style="font-size:19px;font-weight:700;color:var(--ink);margin-bottom:8px">Signing out?</div>
+        <div style="font-size:13px;color:var(--muted);font-weight:500;margin-bottom:24px">You'll need to log back in to access your account.</div>
+        <div style="display:flex;gap:10px">
+            <button class="btn-ghost" style="flex:1" onclick="document.getElementById('logoutModal').classList.remove('show')">Stay</button>
+            <button onclick="doLogout()" style="flex:1;padding:11px;background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Sign out</button>
+        </div>
+    </div>
+</div>
+
+<nav class="mobile-nav">
+    <a class="mnav-item" href="dashboard.html"><span class="mnav-icon">🏠</span><span class="mnav-label">Home</span></a>
+    <a class="mnav-item" href="passbook.html"><span class="mnav-icon">📖</span><span class="mnav-label">Passbook</span></a>
+    <a class="mnav-item active" href="loans.html"><span class="mnav-icon">🏦</span><span class="mnav-label">Loans</span></a>
+    <a class="mnav-item" href="fd.html"><span class="mnav-icon">🏛️</span><span class="mnav-label">FDs</span></a>
+    <a class="mnav-item" href="profile.html"><span class="mnav-icon">👤</span><span class="mnav-label">Profile</span></a>
+</nav>
 </body>
 </html>

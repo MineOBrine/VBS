@@ -79,8 +79,10 @@
         .empty{text-align:center;padding:50px 20px;color:var(--muted)}
         .empty .eicon{font-size:44px;margin-bottom:12px}
         .empty p{font-size:14px;font-weight:600}
-
         @media(max-width:500px){.h-num{display:none}}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .sk-light{background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        .sk-hist{height:58px;border-radius:13px;margin-bottom:8px}
     </style>
 </head>
 <body>
@@ -103,9 +105,7 @@
         <input class="search-input" id="searchInput" placeholder="Search history…" oninput="filterHistory(this.value)">
     </div>
 
-    <div id="historyList" class="history-list">
-        <div class="empty"><div class="eicon">⏳</div><p>Loading history…</p></div>
-    </div>
+    <div id="historyList" class="history-list"></div>
 </div>
 
 <script>
@@ -119,6 +119,7 @@
     }
 
     async function load() {
+        document.getElementById('historyList').innerHTML = Array(6).fill('<div class="sk-light sk-hist"></div>').join('');
         try {
             allHistory = await (await fetch(`${API}/histories`)).json();
             allHistory.sort((a,b)=>new Date(b.date)-new Date(a.date));

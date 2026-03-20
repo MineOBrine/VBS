@@ -5,164 +5,191 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — VBS</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <style>
         :root{
-            --primary:#486f5d;--primary2:#2d4a3e;
+            --primary:#486f5d;--primary2:#2d4a3e;--light:#5e9480;
             --ink:#0f0e17;--paper:#fafaf8;--surface:#fff;
             --border:#e2e1f0;--muted:#6b7280;
             --green:#16a34a;--green-bg:#dcfce7;
-            --blue:#b45309;--blue-bg:#fef3e2;
             --amber:#d97706;--amber-bg:#fef3c7;
+            --red:#dc2626;--red-bg:#fef2f2;
+            --teal:#0f766e;--teal-bg:#ccfbf1;
         }
         *{margin:0;padding:0;box-sizing:border-box}
-        body{
-            font-family:'Quicksand',sans-serif;
-            background:var(--paper);min-height:100vh;
-            padding:24px 16px;position:relative;overflow-x:hidden;
-        }
-        body::before,body::after{
-            content:'';position:fixed;border-radius:50%;
-            filter:blur(90px);opacity:.12;pointer-events:none;z-index:0;
-        }
+        body{font-family:'Quicksand',sans-serif;background:var(--paper);min-height:100vh;padding:24px 16px 100px;position:relative;overflow-x:hidden}
+        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.12;pointer-events:none;z-index:0}
         body::before{width:600px;height:600px;background:radial-gradient(circle,#486f5d,#2d4a3e);top:-150px;right:-150px}
         body::after{width:500px;height:500px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-120px;left:-100px}
 
         .page{position:relative;z-index:1;max-width:860px;margin:0 auto}
 
-        /* Header */
-        .top-bar{
-            display:flex;justify-content:space-between;align-items:center;
-            margin-bottom:28px;
-        }
+        /* ── Top bar ── */
+        .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
         .brand{display:flex;align-items:center;gap:10px}
-        .brand-logo{
-            width:38px;height:38px;
-            background:linear-gradient(135deg,var(--primary),var(--primary2));
-            border-radius:11px;display:flex;align-items:center;justify-content:center;
-            color:#fff;font-size:16px;font-weight:700;
-        }
+        .brand-logo{width:38px;height:38px;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700}
         .brand-name{font-size:20px;font-weight:700;color:var(--ink)}
-        .btn-logout{
-            padding:9px 18px;background:var(--surface);
-            border:1.5px solid var(--border);border-radius:10px;
-            font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;
-            color:var(--muted);cursor:pointer;transition:all .2s;
+        .top-right{display:flex;align-items:center;gap:8px}
+
+        /* Notification bell */
+        .notif-wrap{position:relative}
+        .bell-btn{width:38px;height:38px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;position:relative}
+        .bell-btn:hover{border-color:#8ab5a3;background:#f0f7f4}
+        .notif-badge{position:absolute;top:-5px;right:-5px;width:18px;height:18px;background:var(--red);border-radius:50%;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;display:none}
+        .notif-badge.show{display:flex}
+
+        .notif-dropdown{
+            position:absolute;top:46px;right:0;width:320px;
+            background:var(--surface);border:1.5px solid var(--border);border-radius:14px;
+            box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:600;
+            overflow:hidden;display:none;
         }
+        .notif-dropdown.open{display:block;animation:slideDown .2s ease}
+        @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+        .notif-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .notif-header h4{font-size:14px;font-weight:700;color:var(--ink)}
+        .notif-clear{font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;background:none;border:none;font-family:'Quicksand',sans-serif}
+        .notif-list{max-height:320px;overflow-y:auto}
+        .notif-item{padding:12px 16px;border-bottom:1px solid var(--paper);display:flex;gap:10px;align-items:flex-start;transition:background .15s;cursor:default}
+        .notif-item:hover{background:var(--paper)}
+        .notif-item.unread{background:#f5faf8}
+        .notif-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+        .notif-body .ntitle{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+        .notif-body .ntime{font-size:11px;color:var(--muted);font-weight:500}
+        .notif-empty{text-align:center;padding:30px 16px;color:var(--muted);font-size:13px;font-weight:600}
+
+        .btn-logout{padding:9px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s}
         .btn-logout:hover{border-color:#f5576c;color:#f5576c}
 
-        /* Welcome card */
-        .welcome-card{
-            background:linear-gradient(135deg,var(--primary) 0%,var(--primary2) 100%);
-            border-radius:20px;padding:32px;color:#fff;
-            margin-bottom:20px;
-            box-shadow:0 8px 32px rgba(72,111,93,.25);
-            position:relative;overflow:hidden;
-        }
-        .welcome-card::after{
-            content:'';position:absolute;
-            width:200px;height:200px;border-radius:50%;
-            background:rgba(255,255,255,.07);
-            top:-60px;right:-40px;
-        }
-        .welcome-card::before{
-            content:'';position:absolute;
-            width:140px;height:140px;border-radius:50%;
-            background:rgba(255,255,255,.05);
-            bottom:-50px;right:80px;
-        }
-        .welcome-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;position:relative;z-index:1}
-        .welcome-greeting h2{font-size:22px;font-weight:700;margin-bottom:4px}
-        .welcome-greeting p{font-size:13px;opacity:.8;font-weight:500}
-        .account-badge{
-            padding:5px 13px;border-radius:20px;font-size:12px;font-weight:700;
-            background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
-        }
-        .balance-block{position:relative;z-index:1}
-        .balance-label{font-size:12px;opacity:.8;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
-        .balance-amount{font-size:38px;font-weight:700;letter-spacing:-1px}
+        /* ── Welcome card ── */
+        .welcome-card{background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:20px;padding:28px 30px;color:#fff;margin-bottom:16px;box-shadow:0 8px 32px rgba(72,111,93,.25);position:relative;overflow:hidden}
+        .welcome-card::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-60px;right:-40px}
+        .welcome-card::before{content:'';position:absolute;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-40px;right:100px}
+        .wc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;position:relative;z-index:1}
+        .wc-greeting h2{font-size:20px;font-weight:700;margin-bottom:3px}
+        .wc-greeting p{font-size:12px;opacity:.75;font-weight:500}
+        .wc-badges{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+        .acc-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3)}
+        .acc-no{font-size:11px;opacity:.7;font-weight:600;font-family:monospace;letter-spacing:.5px}
+        .wc-balance{position:relative;z-index:1}
+        .bal-label{font-size:11px;opacity:.8;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+        .bal-amount{font-size:36px;font-weight:700;letter-spacing:-1px}
 
-        /* Info strip */
-        .info-strip{
-            border-radius:12px;padding:11px 16px;margin-bottom:20px;
-            font-size:13px;font-weight:600;align-items:center;gap:8px;display:none;
-        }
+        /* Skeleton */
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .sk{background:linear-gradient(90deg,rgba(255,255,255,.1) 25%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.1) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        .sk-light{background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        .sk-h20{height:20px;margin-bottom:8px}
+        .sk-h14{height:14px;margin-bottom:6px}
+        .sk-h36{height:36px;margin-bottom:0}
+        .sk-w60{width:60%}
+        .sk-w40{width:40%}
+        .sk-w80{width:80%}
+        .sk-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:20px;height:100px}
+
+        /* ── Info strip ── */
+        .info-strip{border-radius:12px;padding:11px 16px;margin-bottom:18px;font-size:13px;font-weight:600;align-items:center;gap:8px;display:none}
         .info-strip.show{display:flex}
         .strip-savings{background:var(--green-bg);color:var(--green);border:1px solid #a3e8c8}
         .strip-current{background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a}
+
+        /* ── Spending summary ── */
+        .spending-section{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px}
+        .spending-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .spending-header h3{font-size:15px;font-weight:700;color:var(--ink)}
+        .spending-month{font-size:12px;font-weight:600;color:var(--muted)}
+        .spending-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+        .sp-stat{background:var(--paper);border-radius:10px;padding:12px;text-align:center}
+        .sp-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+        .sp-val{font-size:18px;font-weight:700}
+        .sp-in{color:var(--green)}
+        .sp-out{color:var(--red)}
+        .sp-net-pos{color:var(--primary)}
+        .sp-net-neg{color:var(--red)}
+        .chart-wrap{height:180px;display:flex;justify-content:center}
 
         /* Message */
         .message{padding:11px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:16px;display:none}
         .message.show{display:block}
         .message.success{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
-        .message.error  {background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+        .message.error{background:var(--red-bg);color:var(--red);border:1px solid #fecaca}
 
-        /* Action grid */
-        .action-grid{
-            display:grid;
-            grid-template-columns:repeat(4,1fr);
-            gap:12px;margin-bottom:20px;
-        }
-        .action-btn{
-            background:var(--surface);border:1.5px solid var(--border);
-            border-radius:16px;padding:20px 12px;
-            cursor:pointer;transition:all .25s;
-            display:flex;flex-direction:column;align-items:center;gap:8px;
-            font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;
-            color:var(--ink);
-        }
+        /* ── Action grid ── */
+        .action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+        .action-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px 10px;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:7px;font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;color:var(--ink)}
         .action-btn:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(72,111,93,.12);border-color:#8ab5a3}
-        .action-btn .a-icon{font-size:26px}
-        .action-btn .a-label{font-size:12px;color:var(--muted);font-weight:600}
-
+        .action-btn .a-icon{font-size:24px}
         .action-btn.withdraw:hover{border-color:#f5576c;box-shadow:0 8px 24px rgba(245,87,108,.12)}
-        .action-btn.deposit:hover {border-color:#22d3ee;box-shadow:0 8px 24px rgba(14,165,233,.12)}
-        .action-btn.transfer:hover{border-color:var(--green);box-shadow:0 8px 24px rgba(22,163,74,.12)}
-        .action-btn.passbook:hover{border-color:var(--primary);box-shadow:0 8px 24px rgba(72,111,93,.12)}
-        .action-btn.loans:hover   {border-color:#f59e0b;box-shadow:0 8px 24px rgba(245,158,11,.12)}
-        .action-btn.fd:hover      {border-color:var(--primary2);box-shadow:0 8px 24px rgba(72,111,93,.12)}
-        .action-btn.update:hover  {border-color:#ec4899;box-shadow:0 8px 24px rgba(236,72,153,.12)}
+        .action-btn.deposit:hover{border-color:#22d3ee;box-shadow:0 8px 24px rgba(14,165,233,.12)}
+        .action-btn.transfer:hover{border-color:var(--teal);box-shadow:0 8px 24px rgba(15,118,110,.12)}
+        .action-btn.profile:hover{border-color:#ec4899;box-shadow:0 8px 24px rgba(236,72,153,.12)}
 
-        /* Modal */
+        /* ── Modals ── */
         .modal{display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center}
         .modal.show{display:flex}
-        .modal-card{
-            background:var(--surface);border-radius:20px;padding:30px;
-            max-width:400px;width:90%;
-            box-shadow:0 20px 60px rgba(0,0,0,.2);
-            border:1px solid var(--border);
-            animation:up .3s ease both;
-        }
+        .modal-card{background:var(--surface);border-radius:20px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);border:1px solid var(--border);animation:up .3s ease both;max-height:90vh;overflow-y:auto}
         @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-        .modal-title{font-size:19px;font-weight:700;color:var(--ink);margin-bottom:18px}
+        .modal-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:18px}
         .fee-note{background:var(--amber-bg);border:1px solid #fde68a;border-radius:9px;padding:10px 13px;font-size:12px;color:var(--amber);font-weight:600;margin-bottom:14px;display:none}
-
+        .inline-error{display:none;background:var(--red-bg);border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:var(--red);margin-bottom:14px}
         .field{display:flex;flex-direction:column;margin-bottom:16px}
         .field label{font-size:12px;font-weight:700;color:#374151;margin-bottom:6px}
-        .field input,.field select{
-            padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;
-            font-size:14px;font-family:'Quicksand',sans-serif;font-weight:500;
-            color:var(--ink);transition:all .2s;background:var(--surface);
-        }
+        .field input,.field select{padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Quicksand',sans-serif;font-weight:500;color:var(--ink);transition:all .2s;background:var(--surface)}
         .field input:focus,.field select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(72,111,93,.1)}
-
         .modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
-        .btn-primary{
-            padding:11px 22px;background:linear-gradient(135deg,var(--primary),var(--primary2));
-            color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;
-            font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;
-        }
+        .btn-primary{padding:11px 22px;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s}
         .btn-primary:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(72,111,93,.35)}
-        .btn-ghost{
-            padding:11px 18px;background:var(--paper);color:var(--muted);
-            border:1.5px solid var(--border);border-radius:10px;
-            font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;
-        }
+        .btn-ghost{padding:11px 18px;background:var(--paper);color:var(--muted);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
         .btn-ghost:hover{border-color:#8ab5a3;color:var(--primary)}
 
-        @media(max-width:600px){
+        /* ── Confirm logout modal ── */
+        .logout-confirm{text-align:center;padding:8px 0}
+        .logout-icon{font-size:48px;margin-bottom:14px}
+        .logout-title{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px}
+        .logout-text{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:24px;line-height:1.5}
+        .logout-btns{display:flex;gap:10px}
+        .btn-logout-yes{flex:1;padding:12px;background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+        .btn-logout-yes:hover{transform:translateY(-2px)}
+
+        /* ── Success animation overlay ── */
+        .success-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:none}
+        .success-overlay.show{display:flex;animation:overlayIn .3s ease}
+        @keyframes overlayIn{from{opacity:0}to{opacity:1}}
+        .success-circle-wrap{animation:circleGrow .4s cubic-bezier(.175,.885,.32,1.275) both}
+        @keyframes circleGrow{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+        .success-svg{width:100px;height:100px}
+        .success-circle-bg{stroke:#fff;stroke-width:2;fill:none}
+        .success-check{stroke:#fff;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:60;stroke-dashoffset:60;animation:checkDraw .5s ease .3s forwards}
+        @keyframes checkDraw{to{stroke-dashoffset:0}}
+        .success-circle-fill{fill:var(--primary);animation:circleFill .4s ease both}
+        @keyframes circleFill{from{opacity:0}to{opacity:1}}
+
+        /* ── Receipt modal ── */
+        .receipt-card{max-width:360px}
+        .receipt-header{text-align:center;margin-bottom:20px}
+        .receipt-tick{width:56px;height:56px;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+        .receipt-title{font-size:18px;font-weight:700;color:var(--ink)}
+        .receipt-ref{font-size:11px;color:var(--muted);font-weight:600;margin-top:4px;font-family:monospace}
+        .receipt-divider{border:none;border-top:1.5px dashed var(--border);margin:16px 0}
+        .receipt-rows{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+        .receipt-row{display:flex;justify-content:space-between;font-size:13px}
+        .receipt-row .rl{color:var(--muted);font-weight:600}
+        .receipt-row .rv{color:var(--ink);font-weight:700}
+        .receipt-amount-big{text-align:center;font-size:28px;font-weight:700;color:var(--primary);margin:12px 0}
+        .receipt-btns{display:flex;gap:10px}
+
+        /* ── Mobile Nav ── */
+        .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1.5px solid var(--border);z-index:500;box-shadow:0 -4px 20px rgba(0,0,0,.07);padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
+        @media(max-width:768px){
+            .mobile-nav{display:flex}
             .action-grid{grid-template-columns:repeat(2,1fr)}
             .top-bar .brand-name{display:none}
+            body{padding-bottom:90px}
         }
+        .mnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:6px 0;color:var(--muted);transition:color .2s}
+        .mnav-item.active{color:var(--primary)}
+        .mnav-icon{font-size:22px}
+        .mnav-label{font-size:10px;font-weight:700}
     </style>
 </head>
 <body>
@@ -172,20 +199,46 @@
             <div class="brand-logo">VB</div>
             <span class="brand-name">VBS</span>
         </div>
-        <button class="btn-logout" onclick="logout()">Sign out</button>
+        <div class="top-right">
+            <!-- Notifications -->
+            <div class="notif-wrap">
+                <div class="bell-btn" onclick="toggleNotif()" id="bellBtn">
+                    🔔
+                    <div class="notif-badge" id="notifBadge"></div>
+                </div>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-header">
+                        <h4>Notifications</h4>
+                        <button class="notif-clear" onclick="markAllRead()">Mark all read</button>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-empty">Loading…</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="openLogoutConfirm()">Sign out</button>
+        </div>
     </div>
 
-    <div class="welcome-card">
-        <div class="welcome-top">
-            <div class="welcome-greeting">
-                <h2 id="welcomeText">Welcome</h2>
-                <p>User ID: <span id="userId">—</span></p>
+    <!-- Welcome Card (with skeleton) -->
+    <div class="welcome-card" id="welcomeCard">
+        <div class="wc-top">
+            <div class="wc-greeting">
+                <div id="skName" class="sk sk-h20 sk-w60" style="margin-bottom:6px"></div>
+                <div id="skSub"  class="sk sk-h14 sk-w40"></div>
+                <h2 id="welcomeText" style="display:none"></h2>
+                <p  id="welcomeSub"  style="display:none"></p>
             </div>
-            <div id="accountBadge" class="account-badge" style="display:none"></div>
+            <div class="wc-badges">
+                <div id="skBadge" class="sk sk-h14" style="width:80px"></div>
+                <div id="accountBadge" class="acc-badge" style="display:none"></div>
+                <div id="accountNo"    class="acc-no"    style="display:none"></div>
+            </div>
         </div>
-        <div class="balance-block">
-            <div class="balance-label">Available Balance</div>
-            <div class="balance-amount">₹ <span id="balance">0.00</span></div>
+        <div class="wc-balance">
+            <div class="bal-label">Available Balance</div>
+            <div id="skBal" class="sk sk-h36" style="width:180px"></div>
+            <div class="bal-amount" id="balanceDisplay" style="display:none">₹ <span id="balance">0.00</span></div>
         </div>
     </div>
 
@@ -193,46 +246,49 @@
         🌱 Your Savings account earns <strong style="margin:0 4px">4% p.a.</strong> interest, credited every month automatically.
     </div>
 
+    <!-- Spending Summary -->
+    <div class="spending-section" id="spendingSection" style="display:none">
+        <div class="spending-header">
+            <h3>📊 This Month</h3>
+            <span class="spending-month" id="spendingMonth"></span>
+        </div>
+        <div class="spending-grid">
+            <div class="sp-stat"><div class="sp-label">Money In</div><div class="sp-val sp-in" id="spIn">₹0</div></div>
+            <div class="sp-stat"><div class="sp-label">Money Out</div><div class="sp-val sp-out" id="spOut">₹0</div></div>
+            <div class="sp-stat"><div class="sp-label">Net</div><div class="sp-val sp-net-pos" id="spNet">₹0</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="spendChart"></canvas></div>
+    </div>
+
     <div id="dashMessage" class="message"></div>
 
     <div class="action-grid">
-        <div class="action-btn withdraw" onclick="openModal('withdrawModal')">
-            <span class="a-icon">💸</span>
-            <span>Withdraw</span>
-        </div>
-        <div class="action-btn deposit" onclick="openModal('depositModal')">
-            <span class="a-icon">📥</span>
-            <span>Deposit</span>
-        </div>
-        <div class="action-btn transfer" onclick="openModal('transferModal')">
-            <span class="a-icon">🔁</span>
-            <span>Transfer</span>
-        </div>
-        <div class="action-btn passbook" onclick="goToPassbook()">
-            <span class="a-icon">📖</span>
-            <span>Passbook</span>
-        </div>
-        <div class="action-btn loans" onclick="goTo('loans.html')">
-            <span class="a-icon">🏦</span>
-            <span>My Loans</span>
-        </div>
-        <div class="action-btn fd" onclick="goTo('fd.html')">
-            <span class="a-icon">🏛️</span>
-            <span>Fixed Deposits</span>
-        </div>
-        <div class="action-btn update" onclick="openModal('updateModal')">
-            <span class="a-icon">✏️</span>
-            <span>Update Profile</span>
-        </div>
+        <div class="action-btn withdraw" onclick="openModal('withdrawModal')"><span class="a-icon">💸</span>Withdraw</div>
+        <div class="action-btn deposit"  onclick="openModal('depositModal')"><span class="a-icon">📥</span>Deposit</div>
+        <div class="action-btn transfer" onclick="openModal('transferModal')"><span class="a-icon">🔁</span>Transfer</div>
+        <div class="action-btn passbook" onclick="go('passbook.html')"><span class="a-icon">📖</span>Passbook</div>
+        <div class="action-btn loans"    onclick="go('loans.html')"><span class="a-icon">🏦</span>Loans</div>
+        <div class="action-btn fd"       onclick="go('fd.html')"><span class="a-icon">🏛️</span>Fixed Deposits</div>
+        <div class="action-btn update"   onclick="openModal('updateModal')"><span class="a-icon">✏️</span>Update Profile</div>
+        <div class="action-btn profile"  onclick="go('profile.html')"><span class="a-icon">👤</span>My Profile</div>
     </div>
 </div>
 
-<!-- Withdraw -->
+<!-- Mobile Nav -->
+<nav class="mobile-nav">
+    <a class="mnav-item active" href="dashboard.html" data-page="dashboard"><span class="mnav-icon">🏠</span><span class="mnav-label">Home</span></a>
+    <a class="mnav-item" href="passbook.html" data-page="passbook"><span class="mnav-icon">📖</span><span class="mnav-label">Passbook</span></a>
+    <a class="mnav-item" href="loans.html" data-page="loans"><span class="mnav-icon">🏦</span><span class="mnav-label">Loans</span></a>
+    <a class="mnav-item" href="fd.html" data-page="fd"><span class="mnav-icon">🏛️</span><span class="mnav-label">FDs</span></a>
+    <a class="mnav-item" href="profile.html" data-page="profile"><span class="mnav-icon">👤</span><span class="mnav-label">Profile</span></a>
+</nav>
+
+<!-- Modals -->
 <div id="withdrawModal" class="modal">
     <div class="modal-card">
         <div class="modal-title">💸 Withdraw Funds</div>
         <div id="withdrawFeeNote" class="fee-note">⚠️ ₹10 service fee applies (Current Account)</div>
-        <div id="withdrawError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:14px"></div>
+        <div id="withdrawError" class="inline-error"></div>
         <form id="withdrawForm">
             <div class="field"><label>Amount (₹)</label><input type="number" id="withdrawAmount" step="0.01" min="0.01" required placeholder="0.00"></div>
             <div class="modal-btns">
@@ -243,11 +299,10 @@
     </div>
 </div>
 
-<!-- Deposit -->
 <div id="depositModal" class="modal">
     <div class="modal-card">
         <div class="modal-title">📥 Deposit Funds</div>
-        <div id="depositError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:14px"></div>
+        <div id="depositError" class="inline-error"></div>
         <form id="depositForm">
             <div class="field"><label>Amount (₹)</label><input type="number" id="depositAmount" step="0.01" min="0.01" required placeholder="0.00"></div>
             <div class="modal-btns">
@@ -258,12 +313,11 @@
     </div>
 </div>
 
-<!-- Transfer -->
 <div id="transferModal" class="modal">
     <div class="modal-card">
         <div class="modal-title">🔁 Transfer Funds</div>
         <div id="transferFeeNote" class="fee-note">⚠️ 0.5% fee (min ₹5) applies (Current Account)</div>
-        <div id="transferError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:14px"></div>
+        <div id="transferError" class="inline-error"></div>
         <form id="transferForm">
             <div class="field"><label>Recipient Username</label><input type="text" id="transferUsername" required placeholder="Enter username"></div>
             <div class="field"><label>Amount (₹)</label><input type="number" id="transferAmount" step="0.01" min="1" required placeholder="0.00"></div>
@@ -275,14 +329,12 @@
     </div>
 </div>
 
-<!-- Update Profile -->
 <div id="updateModal" class="modal">
     <div class="modal-card">
         <div class="modal-title">✏️ Update Profile</div>
-        <div id="updateError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:600;color:#dc2626;margin-bottom:14px"></div>
+        <div id="updateError" class="inline-error"></div>
         <form id="updateForm">
-            <div class="field">
-                <label>Field to update</label>
+            <div class="field"><label>Field</label>
                 <select id="updateKey">
                     <option value="name">Name</option>
                     <option value="password">Password</option>
@@ -298,9 +350,55 @@
     </div>
 </div>
 
+<!-- Confirm Logout -->
+<div id="logoutModal" class="modal">
+    <div class="modal-card">
+        <div class="logout-confirm">
+            <div class="logout-icon">👋</div>
+            <div class="logout-title">Signing out?</div>
+            <div class="logout-text">You'll need to log back in to access your account.</div>
+            <div class="logout-btns">
+                <button class="btn-ghost" style="flex:1" onclick="closeModal('logoutModal')">Stay</button>
+                <button class="btn-logout-yes" onclick="doLogout()">Sign out</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Animation -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-circle-wrap">
+        <svg class="success-svg" viewBox="0 0 100 100">
+            <circle class="success-circle-fill" cx="50" cy="50" r="48"/>
+            <path class="success-check" d="M28 52 L42 66 L72 36"/>
+        </svg>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div id="receiptModal" class="modal">
+    <div class="modal-card receipt-card">
+        <div class="receipt-header">
+            <div class="receipt-tick">✓</div>
+            <div class="receipt-title" id="receiptTitle">Transaction Successful</div>
+            <div class="receipt-ref" id="receiptRef"></div>
+        </div>
+        <div class="receipt-amount-big" id="receiptAmt"></div>
+        <hr class="receipt-divider">
+        <div class="receipt-rows" id="receiptRows"></div>
+        <hr class="receipt-divider">
+        <div class="receipt-btns">
+            <button class="btn-ghost" style="flex:1" onclick="closeReceipt()">Done</button>
+            <button class="btn-primary" style="flex:1" onclick="copyReceipt()">📋 Copy</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const API = 'http://localhost:8081';
-    let userId, role, accountType = 'SAVINGS';
+    let userId, role, accountType = 'SAVINGS', currentBalance = 0;
+    let notifOpen = false, lastSeenTs, passbookCache = [];
+    let receiptData = {};
 
     function validateUserAccess() {
         const sid = localStorage.getItem('userId');
@@ -310,39 +408,219 @@
         if (uid && uid !== sid) { alert('Unauthorized!'); location.href='login.html'; return; }
         userId = sid; role = sr;
         window.history.replaceState({}, '', 'dashboard.html');
+        lastSeenTs = parseInt(localStorage.getItem('lastSeenTs')||'0');
     }
 
+    // ── Load dashboard ──────────────────────────────────────────────────────
     async function loadDashboard() {
-        document.getElementById('userId').textContent = userId;
         try {
             const data = await (await fetch(`${API}/get-details/${userId}`)).json();
-            document.getElementById('welcomeText').textContent = `Welcome, ${data.username} 👋`;
-            document.getElementById('balance').textContent = data.balance.toFixed(2);
+            currentBalance = data.balance;
+
+            // Hide skeletons, show real content
+            ['skName','skSub','skBadge','skBal'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.getElementById('welcomeText').style.display = 'block';
+            document.getElementById('welcomeSub').style.display  = 'block';
+            document.getElementById('accountBadge').style.display= 'inline-block';
+            document.getElementById('accountNo').style.display   = 'block';
+            document.getElementById('balanceDisplay').style.display = 'block';
+
+            document.getElementById('welcomeText').textContent = `Welcome back, ${data.name || data.username} 👋`;
+            document.getElementById('welcomeSub').textContent  = data.accountNumber || '';
+            document.getElementById('balance').textContent      = data.balance.toFixed(2);
+            document.getElementById('accountNo').style.display  = 'none'; // already shown in welcomeSub
+
             accountType = (data.accountType || 'SAVINGS').toUpperCase();
             const badge = document.getElementById('accountBadge');
-            badge.style.display = 'inline-block';
             if (accountType === 'SAVINGS') {
                 badge.textContent = '🏦 Savings';
                 document.getElementById('infoStrip').classList.add('show');
-                document.getElementById('infoStrip').className = 'info-strip strip-savings show';
             } else if (accountType === 'CURRENT') {
                 badge.textContent = '💼 Current';
-                document.getElementById('infoStrip').textContent = '⚠️ Current Account: ₹10 fee/withdrawal · 0.5% fee (min ₹5) on transfers';
+                document.getElementById('infoStrip').textContent = '⚠️ Current Account: ₹10/withdrawal · 0.5% (min ₹5) on transfers';
                 document.getElementById('infoStrip').className = 'info-strip strip-current show';
                 document.getElementById('withdrawFeeNote').style.display = 'block';
                 document.getElementById('transferFeeNote').style.display = 'block';
             }
-        } catch { showMsg('Failed to load dashboard', 'error'); }
+        } catch { showMsg('Failed to load dashboard','error'); }
     }
 
+    // ── Passbook data (notifications + spending) ───────────────────────────
+    async function loadPassbookData() {
+        try {
+            passbookCache = await (await fetch(`${API}/passbook/${userId}`)).json();
+            buildNotifications();
+            buildSpending();
+        } catch {}
+    }
+
+    // ── Notifications ───────────────────────────────────────────────────────
+    const TX_ICONS = {deposit:'📥',withdrawal:'💸',transfer:'🔁',interest:'📈',fee:'💳',fd:'🏛️'};
+    const TX_COLORS = {deposit:'#dcfce7',withdrawal:'#fee2e2',transfer:'#ccfbf1',interest:'#dcfce7',fee:'#fef3c7',fd:'#dceee7'};
+
+    function getTxType(desc) {
+        const d = desc.toLowerCase();
+        if (d.includes('interest'))                                                        return 'interest';
+        // Fee entries are standalone — description starts with "transaction fee for..."
+        // Withdrawal/transfer descriptions that mention "service fee" are NOT fee entries
+        if (d.startsWith('transaction fee'))                                               return 'fee';
+        if (d.includes('fixed deposit')||d.includes('matured')||d.includes('broken early')||d.includes('auto-renew')) return 'fd';
+        if (d.includes('withdrawal'))                                                      return 'withdrawal';
+        if (d.includes('deposit'))                                                         return 'deposit';
+        return 'transfer';
+    }
+
+    function timeAgo(dateStr) {
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const m = Math.floor(diff/60000), h = Math.floor(diff/3600000), d = Math.floor(diff/86400000);
+        if (d > 0) return `${d}d ago`;
+        if (h > 0) return `${h}h ago`;
+        if (m > 0) return `${m}m ago`;
+        return 'just now';
+    }
+
+    function buildNotifications() {
+        const sorted = [...passbookCache].sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0,8);
+        const unread  = sorted.filter(t => new Date(t.date).getTime() > lastSeenTs).length;
+        const badge   = document.getElementById('notifBadge');
+        badge.textContent = unread;
+        unread > 0 ? badge.classList.add('show') : badge.classList.remove('show');
+
+        const list = document.getElementById('notifList');
+        if (!sorted.length) { list.innerHTML='<div class="notif-empty">No transactions yet</div>'; return; }
+
+        list.innerHTML = sorted.map(t => {
+            const type = getTxType(t.description);
+            const isNew = new Date(t.date).getTime() > lastSeenTs;
+            return `
+            <div class="notif-item ${isNew?'unread':''}">
+                <div class="notif-icon" style="background:${TX_COLORS[type]}">${TX_ICONS[type]}</div>
+                <div class="notif-body">
+                    <div class="ntitle">${t.description.length>45?t.description.substring(0,45)+'…':t.description}</div>
+                    <div class="ntime">${timeAgo(t.date)} · ₹${t.amount.toFixed(2)}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function toggleNotif() {
+        notifOpen = !notifOpen;
+        document.getElementById('notifDropdown').classList.toggle('open', notifOpen);
+    }
+
+    function markAllRead() {
+        lastSeenTs = Date.now();
+        localStorage.setItem('lastSeenTs', lastSeenTs);
+        document.getElementById('notifBadge').classList.remove('show');
+        buildNotifications();
+    }
+
+    document.addEventListener('click', e => {
+        if (!document.getElementById('bellBtn').contains(e.target) &&
+            !document.getElementById('notifDropdown').contains(e.target)) {
+            document.getElementById('notifDropdown').classList.remove('open');
+            notifOpen = false;
+        }
+    });
+
+    // ── Spending summary ────────────────────────────────────────────────────
+    let chartInstance = null;
+    function buildSpending() {
+        const now = new Date(), month = now.getMonth(), year = now.getFullYear();
+        const monthTx = passbookCache.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === month && d.getFullYear() === year;
+        });
+        if (!monthTx.length) return;
+
+        let deposited=0, withdrawn=0, fees=0, interest=0, fdOut=0, fdIn=0;
+        monthTx.forEach(t => {
+            const type = getTxType(t.description);
+            const d    = t.description.toLowerCase();
+            if (type==='deposit')    deposited += t.amount;
+            if (type==='withdrawal') withdrawn += t.amount;
+            if (type==='fee')        fees      += t.amount;
+            if (type==='interest')   interest  += t.amount;
+            if (type==='fd') {
+                // FD opening & auto-renew = money out (locked)
+                // FD matured / broken = money back in
+                if (d.includes('matured') || d.includes('broken early') || d.includes('credited')) {
+                    fdIn += t.amount;
+                } else if (!d.includes('auto-renewed')) {
+                    fdOut += t.amount; // opening: "Fixed Deposit #opened"
+                }
+            }
+        });
+
+        const totalIn  = deposited + interest + fdIn;
+        const totalOut = withdrawn + fees + fdOut;
+        const net      = totalIn - totalOut;
+
+        document.getElementById('spIn').textContent  = '₹' + totalIn.toFixed(0);
+        document.getElementById('spOut').textContent = '₹' + totalOut.toFixed(0);
+        const netEl = document.getElementById('spNet');
+        netEl.textContent = (net >= 0 ? '+' : '') + '₹' + net.toFixed(0);
+        netEl.className   = 'sp-val ' + (net >= 0 ? 'sp-net-pos' : 'sp-net-neg');
+
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        document.getElementById('spendingMonth').textContent = monthNames[month] + ' ' + year;
+        document.getElementById('spendingSection').style.display = 'block';
+
+        if (chartInstance) chartInstance.destroy();
+        const ctx = document.getElementById('spendChart').getContext('2d');
+
+        // Only include segments that have a value > 0
+        const segments = [
+            { label:'Deposits',    value:deposited, color:'#486f5d' },
+            { label:'Withdrawals', value:withdrawn, color:'#dc2626' },
+            { label:'Fees',        value:fees,      color:'#d97706' },
+            { label:'Interest',    value:interest,  color:'#16a34a' },
+            { label:'FD Locked',   value:fdOut,     color:'#8b5cf6' },
+            { label:'FD Returned', value:fdIn,      color:'#5e9480' },
+        ].filter(s => s.value > 0);
+
+        chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels:   segments.map(s => s.label),
+                datasets: [{
+                    data:            segments.map(s => s.value),
+                    backgroundColor: segments.map(s => s.color),
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '68%',
+                plugins: {
+                    legend: {
+                        position:'right',
+                        labels:{ font:{ family:'Quicksand', weight:'600', size:12 }, boxWidth:12, padding:12 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ₹${ctx.parsed.toFixed(2)}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Modal helpers ───────────────────────────────────────────────────────
     const openModal  = id => document.getElementById(id).classList.add('show');
     const closeModal = id => {
         document.getElementById(id).classList.remove('show');
         document.getElementById(id).querySelector('form')?.reset();
-        // Clear inline errors
         const err = document.getElementById(id.replace('Modal','Error'));
         if (err) err.style.display = 'none';
     };
+
+    function showErr(id, msg) {
+        const el = document.getElementById(id);
+        el.textContent = '⚠️ ' + msg;
+        el.style.display = 'block';
+    }
 
     function showMsg(msg, type) {
         const el = document.getElementById('dashMessage');
@@ -350,101 +628,129 @@
         setTimeout(() => el.classList.remove('show'), 3500);
     }
 
+    // ── Success animation + receipt ─────────────────────────────────────────
+    function showSuccess(type, amount, extra={}) {
+        // 1. Close form modal
+        ['withdrawModal','depositModal','transferModal','updateModal'].forEach(id => {
+            document.getElementById(id).classList.remove('show');
+        });
+
+        // 2. Show success animation
+        const overlay = document.getElementById('successOverlay');
+        overlay.classList.add('show');
+        setTimeout(async () => {
+            overlay.classList.remove('show');
+            // 3. Refresh balance for receipt
+            let newBal = currentBalance;
+            try {
+                const data = await (await fetch(`${API}/get-details/${userId}`)).json();
+                newBal = data.balance;
+                currentBalance = newBal;
+                document.getElementById('balance').textContent = newBal.toFixed(2);
+            } catch {}
+            // 4. Show receipt
+            openReceipt(type, amount, newBal, extra);
+            // 5. Reload passbook cache for updated notifications
+            loadPassbookData();
+        }, 1200);
+    }
+
+    function openReceipt(type, amount, newBal, extra={}) {
+        const ref = 'VBS' + Date.now().toString().slice(-10);
+        const now  = new Date().toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        document.getElementById('receiptTitle').textContent = type + ' Successful';
+        document.getElementById('receiptRef').textContent   = 'Ref: ' + ref;
+        document.getElementById('receiptAmt').textContent   = '₹' + parseFloat(amount).toFixed(2);
+
+        let rows = `
+            <div class="receipt-row"><span class="rl">Type</span><span class="rv">${type}</span></div>
+            <div class="receipt-row"><span class="rl">Date & Time</span><span class="rv">${now}</span></div>`;
+        if (extra.to)   rows += `<div class="receipt-row"><span class="rl">To</span><span class="rv">${extra.to}</span></div>`;
+        if (extra.from) rows += `<div class="receipt-row"><span class="rl">From</span><span class="rv">${extra.from}</span></div>`;
+        rows += `<div class="receipt-row"><span class="rl">New Balance</span><span class="rv" style="color:var(--primary)">₹${newBal.toFixed(2)}</span></div>`;
+
+        document.getElementById('receiptRows').innerHTML = rows;
+        receiptData = { ref, type, amount, newBal, now, ...extra };
+        openModal('receiptModal');
+    }
+
+    function closeReceipt() { closeModal('receiptModal'); }
+
+    function copyReceipt() {
+        const text = `VBS Receipt\nRef: ${receiptData.ref}\nType: ${receiptData.type}\nAmount: ₹${parseFloat(receiptData.amount).toFixed(2)}\nDate: ${receiptData.now}\nNew Balance: ₹${receiptData.newBal?.toFixed(2)}`;
+        navigator.clipboard.writeText(text).then(() => showMsg('Receipt copied! ✓','success'));
+    }
+
+    // ── Transaction handlers ────────────────────────────────────────────────
     document.getElementById('withdrawForm').addEventListener('submit', async e => {
         e.preventDefault();
-        const errEl = document.getElementById('withdrawError');
-        errEl.style.display = 'none';
+        const amt = +document.getElementById('withdrawAmount').value;
+        document.getElementById('withdrawError').style.display = 'none';
         try {
-            const r = await fetch(`${API}/withdraw`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,amount:+document.getElementById('withdrawAmount').value})});
+            const r = await fetch(`${API}/withdraw`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,amount:amt})});
             const t = await r.text();
-            if (t.toLowerCase().includes('successful')) {
-                showMsg('Withdrawal successful! ✓','success');
-                closeModal('withdrawModal');
-                loadDashboard();
-            } else {
-                errEl.textContent = '⚠️ ' + t;
-                errEl.style.display = 'block';
-            }
-        } catch {
-            errEl.textContent = '⚠️ Error processing withdrawal.';
-            errEl.style.display = 'block';
-        }
+            if (t.toLowerCase().includes('successful')) { showSuccess('Withdrawal', amt); }
+            else showErr('withdrawError', t);
+        } catch { showErr('withdrawError','Error processing withdrawal.'); }
     });
 
     document.getElementById('depositForm').addEventListener('submit', async e => {
         e.preventDefault();
-        const errEl = document.getElementById('depositError');
-        errEl.style.display = 'none';
+        const amt = +document.getElementById('depositAmount').value;
+        document.getElementById('depositError').style.display = 'none';
         try {
-            const r = await fetch(`${API}/deposit`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,amount:+document.getElementById('depositAmount').value})});
+            const r = await fetch(`${API}/deposit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,amount:amt})});
             const t = await r.text();
-            if (t.toLowerCase().includes('successful')) {
-                showMsg('Deposit successful! ✓','success');
-                closeModal('depositModal');
-                loadDashboard();
-            } else {
-                errEl.textContent = '⚠️ ' + t;
-                errEl.style.display = 'block';
-            }
-        } catch {
-            errEl.textContent = '⚠️ Error processing deposit.';
-            errEl.style.display = 'block';
-        }
+            if (t.toLowerCase().includes('successful')) { showSuccess('Deposit', amt); }
+            else showErr('depositError', t);
+        } catch { showErr('depositError','Error processing deposit.'); }
     });
 
     document.getElementById('transferForm').addEventListener('submit', async e => {
         e.preventDefault();
-        const errEl = document.getElementById('transferError');
-        errEl.style.display = 'none';
+        const amt  = +document.getElementById('transferAmount').value;
+        const uname = document.getElementById('transferUsername').value;
+        document.getElementById('transferError').style.display = 'none';
         try {
-            const r = await fetch(`${API}/transfer`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,amount:+document.getElementById('transferAmount').value,username:document.getElementById('transferUsername').value})});
+            const r = await fetch(`${API}/transfer`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,amount:amt,username:uname})});
             const t = await r.text();
-            if (r.ok && t.toLowerCase().includes('successfully')) {
-                showMsg('Transfer successful! ✓','success');
-                closeModal('transferModal');
-                loadDashboard();
-            } else {
-                errEl.textContent = '⚠️ ' + t;
-                errEl.style.display = 'block';
-            }
-        } catch {
-            errEl.textContent = '⚠️ Error processing transfer.';
-            errEl.style.display = 'block';
-        }
+            if (r.ok && t.toLowerCase().includes('successfully')) { showSuccess('Transfer', amt, {to: uname}); }
+            else showErr('transferError', t);
+        } catch { showErr('transferError','Error processing transfer.'); }
     });
 
     document.getElementById('updateForm').addEventListener('submit', async e => {
         e.preventDefault();
-        const errEl = document.getElementById('updateError');
-        errEl.style.display = 'none';
+        document.getElementById('updateError').style.display = 'none';
         try {
-            const r = await fetch(`${API}/update`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,key:document.getElementById('updateKey').value,value:document.getElementById('updateValue').value})});
+            const r = await fetch(`${API}/update`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:+userId,key:document.getElementById('updateKey').value,value:document.getElementById('updateValue').value})});
             const t = await r.text();
             if (r.ok && t.toLowerCase().includes('successfully')) {
-                showMsg('Profile updated! ✓','success');
                 closeModal('updateModal');
+                showMsg('Profile updated! ✓','success');
                 loadDashboard();
-            } else {
-                errEl.textContent = '⚠️ ' + t;
-                errEl.style.display = 'block';
-            }
-        } catch {
-            errEl.textContent = '⚠️ Error updating profile.';
-            errEl.style.display = 'block';
-        }
+            } else showErr('updateError', t);
+        } catch { showErr('updateError','Error updating profile.'); }
     });
 
-    function logout()       { localStorage.clear(); location.href='home.html'; }
-    function goToPassbook() { location.href=`passbook.html?id=${userId}&role=${role}`; }
-    function goTo(page)     { location.href=`${page}?id=${userId}`; }
+    // ── Logout confirm ──────────────────────────────────────────────────────
+    function openLogoutConfirm() { openModal('logoutModal'); }
+    function doLogout() { localStorage.clear(); location.href='home.html'; }
+
+    // ── Navigation ──────────────────────────────────────────────────────────
+    function go(page) { location.href = page; }
 
     window.addEventListener('click', e => {
-        ['withdrawModal','depositModal','transferModal','updateModal'].forEach(id => {
+        ['withdrawModal','depositModal','transferModal','updateModal','logoutModal','receiptModal'].forEach(id => {
             if (e.target === document.getElementById(id)) closeModal(id);
         });
     });
 
-    window.addEventListener('DOMContentLoaded', () => { validateUserAccess(); loadDashboard(); });
+    window.addEventListener('DOMContentLoaded', () => {
+        validateUserAccess();
+        loadDashboard();
+        loadPassbookData();
+    });
 </script>
 </body>
 </html>

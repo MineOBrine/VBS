@@ -141,8 +141,14 @@
         .btn-danger:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(245,87,108,.35)}
         .btn-ghost{padding:11px 18px;background:var(--paper);color:var(--muted);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
         .btn-ghost:hover{border-color:#8ab5a3;color:var(--primary)}
-
         @media(max-width:580px){.form-grid{grid-template-columns:1fr}.rate-grid{grid-template-columns:1fr 1fr}}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .sk-light{background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        .sk-fd{height:220px;border-radius:16px;margin-bottom:14px}
+        .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1.5px solid var(--border);z-index:500;box-shadow:0 -4px 20px rgba(0,0,0,.07);padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
+        @media(max-width:768px){.mobile-nav{display:flex}.page{padding-bottom:90px}}
+        .mnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:6px 0;color:var(--muted);transition:color .2s}
+        .mnav-item.active{color:var(--primary)}.mnav-icon{font-size:22px}.mnav-label{font-size:10px;font-weight:700}
     </style>
 </head>
 <body>
@@ -221,6 +227,17 @@
     </div>
 </div>
 
+<!-- Renewal History Modal -->
+<div id="renewalModal" class="modal">
+    <div class="modal-card" style="max-width:480px">
+        <div class="modal-title">🔄 Renewal History — FD #<span id="renewalFdId"></span></div>
+        <div id="renewalList" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+        <div class="modal-btns">
+            <button class="btn-ghost" onclick="closeRenewalModal()">Close</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const API = 'http://localhost:8081';
     let userId, breakFdId;
@@ -233,6 +250,7 @@
     }
 
     async function loadFDs() {
+        document.getElementById('fdList').innerHTML = Array(2).fill('<div class="sk-light sk-fd"></div>').join('');
         try {
             const fds = await (await fetch(`${API}/fd/user/${userId}`)).json();
             renderFDs(fds);
@@ -252,6 +270,7 @@
             const countdown=fd.status==='ACTIVE'?`<div class="countdown">⏳ ${daysLeft===0?'Matures today!':daysLeft+' day'+(daysLeft===1?'':'s')+' remaining'} · Matures ${sFmt(mat)}</div>`:'';
             const breakBtn=fd.status==='ACTIVE'?`<button class="btn-break" onclick="openBreak(${fd.id},${fd.interestRate},${fd.principal})">🔓 Break Early</button>`:'';
             const renewChip=fd.autoRenew?'<span class="renew-chip">🔄 Auto-renew ON</span>':'';
+            const renewHistBtn=fd.autoRenew?`<button onclick="openRenewalHistory(${fd.id})" style="padding:7px 14px;background:var(--paper);border:1.5px solid var(--border);border-radius:9px;font-family:'Quicksand',sans-serif;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#8ab5a3';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📜 Renewal History</button>`:'';
             return `
             <div class="fd-card ${fd.status}">
                 <div class="fd-header">
@@ -270,7 +289,7 @@
                 </div>
                 ${countdown}
                 ${fd.status==='ACTIVE'?`<div class="progress-wrap"><div class="progress-labels"><span>Progress</span><span>${pct}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div></div>`:''}
-                <div class="fd-footer">${breakBtn}${renewChip}</div>
+                <div class="fd-footer">${breakBtn}${renewChip}${renewHistBtn}</div>
             </div>`;
         }).join('');
     }
@@ -351,9 +370,78 @@
 
     function showMsg(msg,type){const el=document.getElementById('fdMsg');el.textContent=msg;el.className='message '+type+' show';setTimeout(()=>el.classList.remove('show'),5000)}
     function goBack(){location.href='dashboard.html'}
-    function logout(){localStorage.clear();location.href='home.html'}
-    window.addEventListener('click',e=>{if(e.target===document.getElementById('breakModal'))closeBreak()});
+    function logout(){openLogoutConfirm()}
+
+    async function openRenewalHistory(fdId) {
+        document.getElementById('renewalFdId').textContent = fdId;
+        document.getElementById('renewalList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;font-weight:600">Loading…</div>';
+        document.getElementById('renewalModal').classList.add('show');
+        try {
+            const renewals = await (await fetch(`${API}/fd/renewals/${fdId}`)).json();
+            if (!renewals.length) {
+                document.getElementById('renewalList').innerHTML =
+                    '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600">🔄 No renewals yet. This FD will record a renewal entry each time it auto-renews on maturity.</div>';
+                return;
+            }
+            const sFmt = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+            document.getElementById('renewalList').innerHTML = renewals.map(r => `
+                <div style="background:var(--paper);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                        <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Renewal #${r.renewalNumber}</span>
+                        <span style="font-size:11px;color:var(--muted);font-weight:500">${sFmt(r.renewedAt)}</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                        <div style="text-align:center">
+                            <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:3px">Principal</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--ink)">₹${r.principal.toFixed(2)}</div>
+                        </div>
+                        <div style="text-align:center">
+                            <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:3px">Interest</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--primary)">₹${r.interestEarned.toFixed(2)}</div>
+                        </div>
+                        <div style="text-align:center">
+                            <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:3px">Maturity</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--green)">₹${r.maturityAmount.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px;font-size:11px;color:var(--muted);font-weight:500;text-align:center">
+                        ${sFmt(r.startDate)} → ${sFmt(r.maturityDate)} · ${r.tenure} months @ ${r.interestRate}% p.a.
+                    </div>
+                </div>`).join('');
+        } catch {
+            document.getElementById('renewalList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);font-size:13px;font-weight:600">Failed to load renewal history.</div>';
+        }
+    }
+
+    function closeRenewalModal() { document.getElementById('renewalModal').classList.remove('show'); }
+    function openLogoutConfirm(){document.getElementById('logoutModal').classList.add('show')}
+    function doLogout(){localStorage.clear();location.href='home.html'}
+    window.addEventListener('click',e=>{
+        if(e.target===document.getElementById('breakModal'))closeBreak();
+        if(e.target===document.getElementById('renewalModal'))closeRenewalModal();
+        if(e.target===document.getElementById('logoutModal'))document.getElementById('logoutModal').classList.remove('show');
+    });
     window.addEventListener('DOMContentLoaded',init);
 </script>
+<!-- Confirm Logout -->
+<div id="logoutModal" style="display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center" class="modal">
+    <div style="background:#fff;border-radius:20px;padding:32px;max-width:360px;width:90%;text-align:center;border:1px solid var(--border);animation:up .3s ease both">
+        <div style="font-size:48px;margin-bottom:14px">👋</div>
+        <div style="font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px">Signing out?</div>
+        <div style="font-size:13px;color:var(--muted);font-weight:500;margin-bottom:24px">You'll need to log back in to access your account.</div>
+        <div style="display:flex;gap:10px">
+            <button onclick="document.getElementById('logoutModal').classList.remove('show')" style="flex:1;padding:12px;background:var(--paper);color:var(--muted);border:1.5px solid var(--border);border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Stay</button>
+            <button onclick="doLogout()" style="flex:1;padding:12px;background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;border:none;border-radius:10px;font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Sign out</button>
+        </div>
+    </div>
+</div>
+
+<nav class="mobile-nav">
+    <a class="mnav-item" href="dashboard.html"><span class="mnav-icon">🏠</span><span class="mnav-label">Home</span></a>
+    <a class="mnav-item" href="passbook.html"><span class="mnav-icon">📖</span><span class="mnav-label">Passbook</span></a>
+    <a class="mnav-item" href="loans.html"><span class="mnav-icon">🏦</span><span class="mnav-label">Loans</span></a>
+    <a class="mnav-item active" href="fd.html"><span class="mnav-icon">🏛️</span><span class="mnav-label">FDs</span></a>
+    <a class="mnav-item" href="profile.html"><span class="mnav-icon">👤</span><span class="mnav-label">Profile</span></a>
+</nav>
 </body>
 </html>
