@@ -18,11 +18,11 @@
         }
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Quicksand',sans-serif;background:var(--paper);min-height:100vh;padding:24px 16px 100px;position:relative;overflow-x:hidden}
-        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.12;pointer-events:none;z-index:0}
+        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.12;pointer-events:none;z-index:0;will-change:auto}
         body::before{width:600px;height:600px;background:radial-gradient(circle,#486f5d,#2d4a3e);top:-150px;right:-150px}
         body::after{width:500px;height:500px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-120px;left:-100px}
 
-        .page{position:relative;z-index:1;max-width:860px;margin:0 auto}
+        .page{position:relative;z-index:1;isolation:isolate;max-width:860px;margin:0 auto}
 
         /* ── Top bar ── */
         .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
@@ -41,7 +41,7 @@
         .notif-dropdown{
             position:absolute;top:46px;right:0;width:320px;
             background:var(--surface);border:1.5px solid var(--border);border-radius:14px;
-            box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:600;
+            box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:800;
             overflow:hidden;display:none;
         }
         .notif-dropdown.open{display:block;animation:slideDown .2s ease}
@@ -125,7 +125,7 @@
         .action-btn.profile:hover{border-color:#ec4899;box-shadow:0 8px 24px rgba(236,72,153,.12)}
 
         /* ── Modals ── */
-        .modal{display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+        .modal{display:none;position:fixed;z-index:9999;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center}
         .modal.show{display:flex}
         .modal-card{background:var(--surface);border-radius:20px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);border:1px solid var(--border);animation:up .3s ease both;max-height:90vh;overflow-y:auto}
         @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -152,7 +152,7 @@
         .btn-logout-yes:hover{transform:translateY(-2px)}
 
         /* ── Success animation overlay ── */
-        .success-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:none}
+        .success-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:none}
         .success-overlay.show{display:flex;animation:overlayIn .3s ease}
         @keyframes overlayIn{from{opacity:0}to{opacity:1}}
         .success-circle-wrap{animation:circleGrow .4s cubic-bezier(.175,.885,.32,1.275) both}

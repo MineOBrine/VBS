@@ -14,11 +14,11 @@
         }
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Quicksand',sans-serif;background:var(--paper);min-height:100vh;padding:24px 16px;position:relative;overflow-x:hidden}
-        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.1;pointer-events:none;z-index:0}
+        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(90px);opacity:.1;pointer-events:none;z-index:0;will-change:auto}
         body::before{width:600px;height:600px;background:radial-gradient(circle,#486f5d,#2d4a3e);top:-150px;right:-150px}
         body::after{width:500px;height:500px;background:radial-gradient(circle,#f97316,#fb923c);bottom:-120px;left:-100px}
 
-        .page{position:relative;z-index:1;max-width:900px;margin:0 auto}
+        .page{position:relative;z-index:1;isolation:isolate;max-width:900px;margin:0 auto}
 
         .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
         .brand{display:flex;align-items:center;gap:10px}
@@ -285,7 +285,7 @@
     function doLogout() { localStorage.clear(); location.href='home.html'; }
     window.addEventListener('DOMContentLoaded', init);
 </script>
-<div id="pbLogoutModal" style="display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+<div id="pbLogoutModal" style="display:none;position:fixed;z-index:9999;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:#fff;border-radius:20px;padding:32px;max-width:360px;width:90%;text-align:center;border:1px solid #e2e1f0;box-shadow:0 20px 60px rgba(0,0,0,.2)">
         <div style="font-size:48px;margin-bottom:14px">👋</div>
         <div style="font-size:20px;font-weight:700;color:#0f0e17;margin-bottom:8px">Signing out?</div>
